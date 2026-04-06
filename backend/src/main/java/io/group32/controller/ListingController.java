@@ -41,4 +41,9 @@ public class ListingController {
     ) {
         return listingService.getListings(search, size, condition, category, minPrice, maxPrice);
     }
+
+    @GetMapping("/mine")
+    public List<Listing> getMyListings(HttpServletRequest request) {
+        return listingService.getListingsForCurrentUser(request);
+    }
 }
