@@ -120,4 +120,14 @@ public class ListingService {
 
         return listingRepository.findAll(specification);
     }
+
+    public List<Listing> getListingsForCurrentUser(HttpServletRequest request) {
+        User user = sessionService.getUser(request);
+
+        if (user == null) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        return listingRepository.findByUser(user);
+    }
 }
