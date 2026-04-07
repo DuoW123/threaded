@@ -57,6 +57,7 @@ public class ListingService {
                 );
                 imageUrls.add(uploadResult.get("secure_url").toString());
             }
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
