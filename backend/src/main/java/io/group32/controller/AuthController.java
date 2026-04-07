@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -99,6 +101,21 @@ public class AuthController {
     @PostMapping("/toggle-two-factor")
     public ResponseEntity<ApiResponse<Void>> toggleTwoFactor(@RequestBody ToggleTwoFactorRequest request, HttpServletRequest httpRequest) {
         AuthResult<Void> result = authService.toggleTwoFactorAuthentication(request, httpRequest);
+        ApiResponse<Void> response = new ApiResponse<>(result.isSuccess(), result.getMessage(), result.getData());
+
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<ApiResponse<Void>> verifyEmail(@RequestParam("token") String token) {
+        VerifyEmailRequest request = new VerifyEmailRequest();
+        request.setToken(token);
+
+        AuthResult<Void> result = authService.handleVerifyEmail(request);
         ApiResponse<Void> response = new ApiResponse<>(result.isSuccess(), result.getMessage(), result.getData());
 
         if (result.isSuccess()) {
