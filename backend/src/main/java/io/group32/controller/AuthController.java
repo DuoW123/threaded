@@ -2,6 +2,7 @@ package io.group32.controller;
 
 import io.group32.dto.request.auth.*;
 import io.group32.dto.response.ApiResponse;
+import io.group32.dto.response.auth.MeResponse;
 import io.group32.service.AuthService;
 import io.group32.service.result.AuthResult;
 import jakarta.servlet.http.HttpServletRequest;
