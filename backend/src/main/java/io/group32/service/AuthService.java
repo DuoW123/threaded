@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import io.group32.dto.response.auth.MeResponse;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
