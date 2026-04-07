@@ -53,7 +53,7 @@ public class ListingService {
             for (MultipartFile image : images) {
                 Map uploadResult = cloudinary.uploader().upload(
                     image.getBytes(),
-                    ObjectUtils.asMap("upload_preset", "unsigned_preset")
+                    ObjectUtils.emptyMap()
                 );
                 imageUrls.add(uploadResult.get("secure_url").toString());
             }
