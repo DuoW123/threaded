@@ -5,9 +5,10 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 import java.util.List;
 import java.util.ArrayList;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "listings")
@@ -49,5 +50,6 @@ public class Listing {
     private LocalDateTime creationDate = LocalDateTime.now();
 
     @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<ListingImage> images = new ArrayList<>();
 }
