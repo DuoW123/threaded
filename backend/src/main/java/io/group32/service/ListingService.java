@@ -51,8 +51,11 @@ public class ListingService {
 
         try {
             for (MultipartFile image : images) {
-                Map uploadResult = cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
-                imageUrls.add(uploadResult.get("url").toString());
+                Map uploadResult = cloudinary.uploader().upload(
+                    image.getBytes(),
+                    ObjectUtils.asMap("upload_preset", "unsigned_preset")
+                );
+                imageUrls.add(uploadResult.get("secure_url").toString());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
