@@ -3,6 +3,7 @@ package io.group32.service;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import io.group32.dto.request.listings.CreateListingRequest;
+import io.group32.dto.request.listings.UpdateListingRequest;
 import io.group32.model.Listing;
 import io.group32.model.ListingImage;
 import io.group32.model.ListingStatus;
@@ -39,6 +40,8 @@ public class ListingService {
         this.sessionService = sessionService;
     }
 
+    public record ImageRecord(String url, String publicId) {}
+
     @Transactional
     public String handleCreateListing(CreateListingRequest request, List<MultipartFile> images, HttpServletRequest httpRequest) {
         User user = sessionService.getUser(httpRequest);
@@ -47,21 +50,19 @@ public class ListingService {
             return "User error";
         }
 
-        List<String> imageUrls = new ArrayList<>();
+        Listing listing = getListing(request, user);
+        listingRepository.save(listing);
 
-        try {
-            for (MultipartFile image : images) {
-                Map uploadResult = cloudinary.uploader().upload(
-                    image.getBytes(),
-                    ObjectUtils.emptyMap()
-                );
-                imageUrls.add(uploadResult.get("secure_url").toString());
-            }
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (images != null && !images.isEmpty()) {
+            List<ImageRecord> imageRecords = uploadImages(images);
+            addImagesToListing(listing, imageRecords);
         }
 
+        //TODO
+        return "Temporary String (return actual responses in the future)";
+    }
+
+    public Listing getListing(CreateListingRequest request, User user) {
         Listing listing = new Listing();
         listing.setUser(user);
         listing.setTitle(request.getTitle());
@@ -73,20 +74,31 @@ public class ListingService {
         listing.setCategory(request.getCategory());
         listing.setListingStatus(ListingStatus.OPEN);
 
-        listingRepository.save(listing);
-
-        addImagesToListing(listing, imageUrls);
-
-        //TODO
-        return "Temporary String (return actual responses in the future)";
+        return listing;
     }
 
-    @Transactional
-    public void addImagesToListing(Listing listing, List<String> imageUrls) {
-        for (String url : imageUrls) {
+    public List<ImageRecord> uploadImages(List<MultipartFile> images) {
+        List<ImageRecord> imageRecords = new ArrayList<>();
+
+        try {
+            for (MultipartFile image : images) {
+                Map uploadResult = cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
+                imageRecords.add(new ImageRecord(uploadResult.get("secure_url").toString(), uploadResult.get("public_id").toString()));
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return imageRecords;
+    }
+
+    public void addImagesToListing(Listing listing, List<ImageRecord> imageRecords) {
+        for (ImageRecord imageRecord : imageRecords) {
             ListingImage listingImage = new ListingImage();
             listingImage.setListing(listing);
-            listingImage.setImageUrl(url);
+            listingImage.setImageUrl(imageRecord.url());
+            listingImage.setPublicId(imageRecord.publicId());
             listingImageRepository.save(listingImage);
         }
     }
@@ -133,5 +145,86 @@ public class ListingService {
         }
 
         return listingRepository.findByUser(user);
+    }
+
+    @Transactional
+    public String handleUpdateListing(Long id, UpdateListingRequest request, List<MultipartFile> newImages, HttpServletRequest httpRequest) {
+        Listing listing = verifyListingOwnership(id, httpRequest);
+
+        updateListingAttributes(listing, request);
+
+        deleteImages(listing, request.getDeleteImageIds());
+
+        if (newImages != null && !newImages.isEmpty()) {
+            List<ImageRecord> imageRecords = uploadImages(newImages);
+            addImagesToListing(listing, imageRecords);
+        }
+
+        listingRepository.save(listing);
+
+        return "Successfully updated listing";
+    }
+
+    public Listing verifyListingOwnership(Long id, HttpServletRequest httpRequest) {
+        User sessionUser = sessionService.getUser(httpRequest);
+
+        if (sessionUser == null) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        Listing listing = listingRepository.findById(id).orElseThrow(() -> new RuntimeException("Listing not found"));
+
+        if (!listing.getUser().getId().equals(sessionUser.getId())) {
+            throw new RuntimeException("Unauthorized request");
+        }
+
+        return listing;
+    }
+
+    public void updateListingAttributes(Listing listing, UpdateListingRequest request) {
+        if (request.getTitle() != null) listing.setTitle(request.getTitle());
+        if (request.getDescription() != null) listing.setDescription(request.getDescription());
+        if (request.getPrice() != null) listing.setPrice(request.getPrice());
+        if (request.getBrand() != null) listing.setBrand(request.getBrand());
+        if (request.getSize() != null) listing.setSize(request.getSize());
+        if (request.getItemCondition() != null) listing.setItemCondition(request.getItemCondition());
+        if (request.getCategory() != null) listing.setCategory(request.getCategory());
+    }
+
+    public void deleteImages(Listing listing, List<Long> deleteImageIds) {
+        if (deleteImageIds == null || deleteImageIds.isEmpty()) return;
+
+        for (Long id : deleteImageIds) {
+            ListingImage listingImage = listingImageRepository.findById(id).orElseThrow(() -> new RuntimeException("Image not found"));
+
+            if (!listingImage.getListing().getId().equals(listing.getId())) {
+                throw new RuntimeException("Image doesn't belong to the specified listing");
+            }
+
+            try {
+                cloudinary.uploader().destroy(listingImage.getPublicId(), ObjectUtils.emptyMap());
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to delete image: ", e);
+            }
+
+            listingImageRepository.delete(listingImage);
+        }
+    }
+
+    @Transactional
+    public String deleteListing(Long id, HttpServletRequest httpRequest) {
+        Listing listing = verifyListingOwnership(id, httpRequest);
+
+        for (ListingImage image : listing.getImages()) {
+            try {
+                cloudinary.uploader().destroy(image.getPublicId(), ObjectUtils.emptyMap());
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to delete image: ", e);
+            }
+        }
+
+        listingRepository.delete(listing);
+
+        return "Successfully deleted listing";
     }
 }

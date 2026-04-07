@@ -20,4 +20,7 @@ public class ListingImage {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String imageUrl;
+
+    @Column(nullable = false)
+    private String publicId;
 }
