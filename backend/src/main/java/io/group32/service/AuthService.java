@@ -310,4 +310,20 @@ public class AuthService {
             throw new RuntimeException("Error while hashing", exception);
         }
     }
+
+    public AuthResult<MeResponse> handleMe(HttpServletRequest request) {
+        User user = sessionService.getUser(request);
+
+        if (user == null) {
+            return AuthResult.failure("Not authenticated", null);
+        }
+
+        MeResponse me = new MeResponse(
+                user.getUsername(),
+                user.getEmail(),
+                user.isTwoFactorEnabled()
+        );
+
+         return AuthResult.success("User loaded", me);
+    }
 }
