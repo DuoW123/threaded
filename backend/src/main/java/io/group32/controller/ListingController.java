@@ -1,5 +1,6 @@
 package io.group32.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.group32.dto.request.listings.CreateListingRequest;
 import io.group32.model.Listing;
 import io.group32.service.ListingService;
@@ -21,8 +22,26 @@ public class ListingController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String createListing(@RequestPart("data")CreateListingRequest request, @RequestPart("images")List<MultipartFile> images, HttpServletRequest httpRequest) {
-        return listingService.handleCreateListing(request, images, httpRequest);
+    public String createListing(
+            @RequestPart("data") String rawJson,
+            @RequestPart("images") List<MultipartFile> images,
+            HttpServletRequest httpRequest
+    ) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            CreateListingRequest request = mapper.readValue(rawJson, CreateListingRequest.class);
+
+            return listingService.handleCreateListing(request, images, httpRequest);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    @GetMapping("/me")
+    public List<Listing> getMyListings(HttpServletRequest request) {
+        return listingService.getListingsForCurrentUser(request);
     }
 
     @GetMapping("/{id}")
@@ -40,10 +59,5 @@ public class ListingController {
             @RequestParam(required = false) BigDecimal maxPrice
     ) {
         return listingService.getListings(search, size, condition, category, minPrice, maxPrice);
-    }
-
-    @GetMapping("/mine")
-    public List<Listing> getMyListings(HttpServletRequest request) {
-        return listingService.getListingsForCurrentUser(request);
     }
 }
