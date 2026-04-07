@@ -44,4 +44,7 @@ public class Listing {
 
     @Column(nullable = false)
     private LocalDateTime creationDate = LocalDateTime.now();
+
+    @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ListingImage> images = new ArrayList<>();
 }
