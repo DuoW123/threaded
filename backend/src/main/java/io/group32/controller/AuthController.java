@@ -124,4 +124,18 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<MeResponse>> me(HttpServletRequest request) {
+        AuthResult<MeResponse> result = authService.handleMe(request);
+
+        ApiResponse<MeResponse> response =
+                new ApiResponse<>(result.isSuccess(), result.getMessage(), result.getData());
+
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(401).body(response);
+        }
+    }
 }
