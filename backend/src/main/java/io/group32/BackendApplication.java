@@ -15,20 +15,4 @@ public class BackendApplication {
     public static void main(String[] args) {
         SpringApplication.run(BackendApplication.class, args);
     }
-
-//    @Bean
-//    public CommandLineRunner testUpload(Cloudinary cloudinary) {
-//        return args -> {
-//            try {
-//                File file = new File("C:\\Users\\alexg\\Downloads\\bella_moncler.png");
-//
-//                if (file.exists()) {
-//                    Map uploadResult = cloudinary.uploader().upload(file, ObjectUtils.emptyMap());
-//                    System.out.println("sucess: " + uploadResult.get("url"));
-//                }
-//            } catch (Exception exception) {
-//                System.out.println(exception.toString());
-//            }
-//        };
-//    }
 }
