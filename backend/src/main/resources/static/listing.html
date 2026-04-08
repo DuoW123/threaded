@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Listing Details</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #d7f5d0;
+            margin: 0;
+            padding: 0;
+            color: black;
+        }
+
+        .container {
+            padding: 35px;
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 12px;
+            border: 3px solid #ff7ebf;
+            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 16px;
+            background: black;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 2px solid black;
+        }
+
+        .back-btn:hover {
+            background: #333;
+        }
+
+        .gallery {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .gallery img {
+            height: 260px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid black;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .price {
+            font-size: 26px;
+            margin: 10px 0;
+            font-weight: 700;
+        }
+
+        .meta {
+            color: #444;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .actions {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid black;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .btn-buy {
+            background: #ff7ebf;
+            color: black;
+        }
+
+        .btn-buy:hover {
+            background: #ff9ad0;
+        }
+
+        .btn-message {
+            background: black;
+            color: white;
+        }
+
+        .btn-message:hover {
+            background: #333;
+        }
+
+        .btn-fav {
+            background: #ffe066;
+            color: black;
+        }
+
+        .btn-fav:hover {
+            background: #ffcf33;
+        }
+    </style>
+</head>
+<body>
+
+<div id="navbar"></div>
+<script>
+    fetch("/navbar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("navbar").innerHTML = html;
+        });
+</script>
+
+<div class="container">
+    <a href="/home.html" class="back-btn">← Back</a>
+
+    <div id="gallery" class="gallery"></div>
+
+    <h2 id="title"></h2>
+    <div id="price" class="price"></div>
+    <div id="meta" class="meta"></div>
+    <p id="description"></p>
+
+    <div class="actions">
+        <button class="btn btn-buy" onclick="buyNow()">Buy Now</button>
+        <button class="btn btn-message" onclick="messageSeller()">Message Seller</button>
+        <button class="btn btn-fav" onclick="addToFavourites()">★ Add to Favourites</button>
+    </div>
+</div>
+
+<script>
+let listingData = null;
+
+async function loadListing() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    if (!id) {
+        document.body.innerHTML = "<h2>Invalid listing ID.</h2>";
+        return;
+    }
+
+    const res = await fetch(`http://localhost:8080/api/listings/${id}`, {
+        credentials: "include"
+    });
+
+    if (!res.ok) {
+        document.body.innerHTML = "<h2>Listing not found.</h2>";
+        return;
+    }
+
+    const listing = await res.json();
+    listingData = listing;
+
+    document.getElementById("title").textContent = listing.title;
+    document.getElementById("price").textContent = "£" + listing.price;
+    document.getElementById("description").textContent = listing.description;
+
+    document.getElementById("meta").textContent =
+        `${listing.brand} • Size ${listing.size} • ${listing.itemCondition} • ${listing.category}`;
+
+    const gallery = document.getElementById("gallery");
+    gallery.innerHTML = "";
+
+    if (listing.images && listing.images.length > 0) {
+        listing.images.forEach(imgObj => {
+            const img = document.createElement("img");
+            img.src = imgObj.imageUrl;
+            gallery.appendChild(img);
+        });
+    } else {
+        gallery.innerHTML = "<p>No images available.</p>";
+    }
+}
+
+function buyNow() {
+    alert("Buy Now is not implemented yet — but we can build checkout next.");
+}
+
+function messageSeller() {
+    if (!listingData) return;
+    const seller = listingData.user.username;
+    alert("Messaging " + seller + " — chat system coming next.");
+}
+
+function addToFavourites() {
+    alert("Added to favourites (frontend only for now).");
+}
+
+loadListing();
+</script>
+
+</body>
+</html>

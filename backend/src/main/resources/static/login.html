@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #d7f5d0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: black;
+        }
+
+        .title {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+        }
+
+        .login-box {
+            background: white;
+            padding: 35px;
+            width: 360px;
+            border-radius: 12px;
+            border: 3px solid #ff7ebf;
+            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        .login-box h2 {
+            margin-bottom: 25px;
+            font-size: 26px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 2px solid black;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #login-btn {
+            background: #ff7ebf;
+            color: black;
+            border: 2px solid black;
+        }
+
+        #login-btn:hover {
+            background: #ff9ad0;
+        }
+
+        #register-btn {
+            background: black;
+            color: white;
+            border: 2px solid black;
+        }
+
+        #register-btn:hover {
+            background: #333;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="title">THREADED</div>
+
+<div class="login-box">
+    <h2>Login</h2>
+
+    <input id="username" type="text" placeholder="Username or Email">
+    <input id="password" type="password" placeholder="Password">
+
+    <button id="login-btn">Login</button>
+    <button id="register-btn">Create Account</button>
+
+    <div id="message"></div>
+</div>
+
+<script>
+    const msg = document.getElementById("message");
+
+    function show(text, type="error") {
+        msg.textContent = text;
+        msg.className = type;
+    }
+
+    document.getElementById("register-btn").onclick = () => {
+        window.location.href = "register.html";
+    };
+
+    document.getElementById("login-btn").onclick = async () => {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        const res = await fetch("http://localhost:8080/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            show(data.message, "error");
+            return;
+        }
+
+        show("Login successful!", "success");
+
+        if (data.token) {
+            localStorage.setItem("token", data.token);
+        }
+
+        setTimeout(() => window.location.href = "home.html", 800);
+    };
+</script>
+
+</body>
+</html>

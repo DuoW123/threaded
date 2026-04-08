@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Browse Listings</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #d7f5d0;
+            margin: 0;
+            padding: 0;
+            color: black;
+        }
+
+        .container {
+            padding: 40px 20px;
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .search-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .search-bar input,
+        .search-bar select {
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid black;
+            flex: 1;
+            min-width: 150px;
+            font-size: 14px;
+        }
+
+        .search-bar button {
+            padding: 12px 20px;
+            background: #ff7ebf;
+            color: black;
+            border-radius: 8px;
+            cursor: pointer;
+            min-width: 140px;
+            font-weight: 600;
+            border: 2px solid black;
+            font-size: 16px;
+        }
+
+        .search-bar button:hover {
+            background: #ff9ad0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            border: 3px solid #ff7ebf;
+            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            text-align: center;
+        }
+
+        .card:hover {
+            transform: scale(1.03);
+        }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid black;
+        }
+
+        .card h3 {
+            margin: 10px 0 5px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card p {
+            margin: 5px 0;
+            color: #444;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="navbar"></div>
+<script>
+    fetch("/navbar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("navbar").innerHTML = html;
+        });
+</script>
+
+<div class="container">
+    <div class="search-bar">
+        <input id="search" type="text" placeholder="Search listings...">
+
+        <select id="size">
+            <option value="">Size</option>
+            <option value="XS">XS</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+        </select>
+
+        <select id="condition">
+            <option value="">Condition</option>
+            <option value="NEW">New</option>
+            <option value="USED">Used</option>
+        </select>
+
+        <select id="category">
+            <option value="">Category</option>
+            <option value="ELECTRONICS">Electronics</option>
+            <option value="FASHION">Fashion</option>
+            <option value="HOME">Home</option>
+            <option value="SPORTS">Sports</option>
+            <option value="OTHER">Other</option>
+        </select>
+
+        <input id="minPrice" type="number" placeholder="Min £" step="0.01">
+        <input id="maxPrice" type="number" placeholder="Max £" step="0.01">
+
+        <button onclick="loadListings()">Filter</button>
+    </div>
+
+    <div id="grid" class="grid"></div>
+</div>
+
+<script>
+    async function loadListings() {
+        const search = document.getElementById("search").value;
+        const size = document.getElementById("size").value;
+        const condition = document.getElementById("condition").value;
+        const category = document.getElementById("category").value;
+        const minPrice = document.getElementById("minPrice").value;
+        const maxPrice = document.getElementById("maxPrice").value;
+
+        const grid = document.getElementById("grid");
+        grid.innerHTML = "Loading...";
+
+        const params = new URLSearchParams();
+
+        if (search) params.append("search", search);
+        if (size) params.append("size", size);
+        if (condition) params.append("condition", condition);
+        if (category) params.append("category", category);
+        if (minPrice) params.append("minPrice", minPrice);
+        if (maxPrice) params.append("maxPrice", maxPrice);
+
+        const url = params.toString()
+            ? `http://localhost:8080/api/listings?${params.toString()}`
+            : `http://localhost:8080/api/listings`;
+
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json();
+        const listings = Array.isArray(data) ? data : Object.values(data);
+
+        grid.innerHTML = "";
+
+        if (!listings || listings.length === 0) {
+            grid.innerHTML = "<p>No listings found.</p>";
+            return;
+        }
+
+        listings.forEach(listing => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.onclick = () => {
+                window.location.href = `/listing.html?id=${listing.id}`;
+            };
+
+            const imgSrc =
+                listing.images && listing.images.length > 0
+                    ? listing.images[0].imageUrl
+                    : "/placeholder.png";
+
+            card.innerHTML = `
+                <img src="${imgSrc}">
+                <h3>${listing.title}</h3>
+                <p><strong>£${listing.price}</strong></p>
+                <p>${listing.itemCondition} • ${listing.category}</p>
+            `;
+
+            grid.appendChild(card);
+        });
+    }
+
+    loadListings();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .verify-box {
+            background: white;
+            padding: 30px;
+            width: 350px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="verify-box">
+    <h2>Verifying Email...</h2>
+    <div id="message" class="message"></div>
+</div>
+
+<script>
+    async function verifyEmail() {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token");
+
+        const messageBox = document.getElementById("message");
+
+        if (!token) {
+            messageBox.textContent = "Invalid verification link.";
+            messageBox.className = "message error";
+            return;
+        }
+
+        const res = await fetch("http://localhost:8080/api/auth/verify-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            messageBox.textContent = data.message;
+            messageBox.className = "message error";
+            return;
+        }
+
+        messageBox.textContent = "Email verified successfully! Redirecting to login...";
+        messageBox.className = "message success";
+
+        setTimeout(() => {
+            window.location.href = "/login.html";
+        }, 1500);
+    }
+
+    verifyEmail();
+</script>
+
+</body>
+</html>
