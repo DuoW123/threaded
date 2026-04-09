@@ -14,5 +14,5 @@ public class UpdateListingRequest {
     private String size;
     private String itemCondition;
     private String category;
-    private List<Long> deleteImageIds;
+    private List<String> deleteImages;
 }
