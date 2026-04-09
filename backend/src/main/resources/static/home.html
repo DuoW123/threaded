@@ -89,6 +89,31 @@
             font-weight: 700;
             font-size: 18px;
         }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+            gap: 10px;
+        }
+
+        .pagination button {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 2px solid black;
+            background: #ff7ebf;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .pagination button.active {
+            background: black;
+            color: white;
+        }
+
+        .pagination button:hover {
+            background: #ff9ad0;
+        }
     </style>
 </head>
 <body>
@@ -107,6 +132,7 @@
 
     <h3>Latest Listings</h3>
     <div id="listings" class="listings-grid"></div>
+    <div id="pagination" class="pagination"></div>
 </div>
 
 <script>
@@ -127,14 +153,17 @@ loadUser();
 </script>
 
 <script>
-async function loadListings() {
-    const res = await fetch("http://localhost:8080/api/listings", {
-        credentials: "include"
-    });
+let currentPage = 0;
+const pageSize = 12;
 
+async function loadListings() {
+    const url = `http://localhost:8080/api/listings?page=${currentPage}&pageSize=${pageSize}`;
+
+    const res = await fetch(url, { credentials: "include" });
     const data = await res.json();
 
-    const listings = Array.isArray(data) ? data : Object.values(data);
+    const listings = data.content;
+    const totalPages = data.totalPages;
 
     const container = document.getElementById("listings");
     container.innerHTML = "";
@@ -158,6 +187,44 @@ async function loadListings() {
 
         container.appendChild(card);
     });
+
+    renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
+
+    if (totalPages <= 1) return;
+
+    const prev = document.createElement("button");
+    prev.textContent = "Prev";
+    prev.disabled = currentPage === 0;
+    prev.onclick = () => {
+        currentPage--;
+        loadListings();
+    };
+    pagination.appendChild(prev);
+
+    for (let i = 0; i < totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i + 1;
+        if (i === currentPage) btn.classList.add("active");
+        btn.onclick = () => {
+            currentPage = i;
+            loadListings();
+        };
+        pagination.appendChild(btn);
+    }
+
+    const next = document.createElement("button");
+    next.textContent = "Next";
+    next.disabled = currentPage === totalPages - 1;
+    next.onclick = () => {
+        currentPage++;
+        loadListings();
+    };
+    pagination.appendChild(next);
 }
 
 loadListings();
