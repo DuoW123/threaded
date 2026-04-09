@@ -47,7 +47,7 @@ public class ListingController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int pageSize
     ) {
-        return listingService.getListingsForCurrentUserPaged(request, page, pageSize);
+        return listingService.getListingsForCurrentUser(request, page, pageSize);
     }
 
     @GetMapping("/{id}")
@@ -64,9 +64,10 @@ public class ListingController {
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int pageSize
+            @RequestParam(defaultValue = "12") int pageSize,
+            @RequestParam(defaultValue = "newest") String sortBy
     ) {
-        return listingService.getListingsPaged(search, size, condition, category, minPrice, maxPrice, page, pageSize);
+        return listingService.getListings(search, size, condition, category, minPrice, maxPrice, page, pageSize, sortBy);
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
