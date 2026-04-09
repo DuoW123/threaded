@@ -33,9 +33,33 @@
             padding: 12px;
             border-radius: 8px;
             border: 2px solid black;
-            flex: 1;
-            min-width: 150px;
             font-size: 14px;
+        }
+
+        .top-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .bottom-row {
+            display: flex;
+            width: 100%;
+        }
+
+        #search {
+            flex: 1;
+        }
+
+        .top-row select {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .price-input {
+            flex: 0.5;
+            max-width: 120px;
         }
 
         .search-bar button {
@@ -134,36 +158,59 @@
 
 <div class="container">
     <div class="search-bar">
-        <input id="search" type="text" placeholder="Search listings...">
 
-        <select id="size">
-            <option value="">Size</option>
-            <option value="XS">XS</option>
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
+        <div class="top-row">
+            <select id="size">
+                <option value="">Size</option>
+                <option value="XS">XS</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+            </select>
 
-        <select id="condition">
-            <option value="">Condition</option>
-            <option value="NEW">New</option>
-            <option value="USED">Used</option>
-        </select>
+            <select id="condition">
+                <option value="">Condition</option>
+                <option value="NEW">New</option>
+                <option value="USED">Used</option>
+            </select>
 
-        <select id="category">
-            <option value="">Category</option>
-            <option value="ELECTRONICS">Electronics</option>
-            <option value="FASHION">Fashion</option>
-            <option value="HOME">Home</option>
-            <option value="SPORTS">Sports</option>
-            <option value="OTHER">Other</option>
-        </select>
+            <select id="category">
+                <option value="">Category</option>
+                <option value="CLOTHING">Clothing</option>
+                <option value="FOOTWEAR">Footwear</option>
+                <option value="ACCESSORIES">Accessories</option>
+                <option value="SPORTSWEAR">Sportswear</option>
+                <option value="OTHER">Other</option>
+            </select>
 
-        <input id="minPrice" type="number" placeholder="Min £" step="0.01">
-        <input id="maxPrice" type="number" placeholder="Max £" step="0.01">
+            <select id="sortBy">
+                <option value="newest">Newest</option>
+                <option value="price_ascending">Price: Low to High</option>
+                <option value="price_descending">Price: High to Low</option>
+            </select>
 
-        <button onclick="applyFilters()">Filter</button>
+            <input id="minPrice" class="price-input" type="number" placeholder="Min £" step="5" min="0">
+            <input id="maxPrice" class="price-input" type="number" placeholder="Max £" step="5" min="0">
+
+            <button onclick="applyFilters()">Filter</button>
+        </div>
+
+        <div class="bottom-row">
+            <input id="search" type="text" placeholder="Search listings...">
+        </div>
+
     </div>
 
     <div id="grid" class="grid"></div>
@@ -180,19 +227,17 @@
     }
 
     async function loadListings() {
+        const params = new URLSearchParams();
+        params.append("page", currentPage);
+        params.append("pageSize", pageSize);
+
         const search = document.getElementById("search").value;
         const size = document.getElementById("size").value;
         const condition = document.getElementById("condition").value;
         const category = document.getElementById("category").value;
         const minPrice = document.getElementById("minPrice").value;
         const maxPrice = document.getElementById("maxPrice").value;
-
-        const grid = document.getElementById("grid");
-        grid.innerHTML = "Loading...";
-
-        const params = new URLSearchParams();
-        params.append("page", currentPage);
-        params.append("pageSize", pageSize);
+        const sortBy = document.getElementById("sortBy").value;
 
         if (search) params.append("search", search);
         if (size) params.append("size", size);
@@ -200,37 +245,32 @@
         if (category) params.append("category", category);
         if (minPrice) params.append("minPrice", minPrice);
         if (maxPrice) params.append("maxPrice", maxPrice);
+        if (sortBy) params.append("sortBy", sortBy);
 
-        const url = `http://localhost:8080/api/listings?${params.toString()}`;
-
-        const res = await fetch(url, { credentials: "include" });
+        const res = await fetch(`/api/listings?${params.toString()}`, { credentials: "include" });
         const data = await res.json();
 
-        const listings = data.content;
-        const totalPages = data.totalPages;
-
+        const grid = document.getElementById("grid");
         grid.innerHTML = "";
 
-        if (!listings || listings.length === 0) {
+        if (!data.content || data.content.length === 0) {
             grid.innerHTML = "<p>No listings found.</p>";
             document.getElementById("pagination").innerHTML = "";
             return;
         }
 
-        listings.forEach(listing => {
+        data.content.forEach(listing => {
             const card = document.createElement("div");
             card.className = "card";
-            card.onclick = () => {
-                window.location.href = `/listing.html?id=${listing.id}`;
-            };
+            card.onclick = () => window.location.href = `/listing.html?id=${listing.id}`;
 
-            const imgSrc =
+            const img =
                 listing.images && listing.images.length > 0
                     ? listing.images[0].imageUrl
                     : "/placeholder.png";
 
             card.innerHTML = `
-                <img src="${imgSrc}">
+                <img src="${img}">
                 <h3>${listing.title}</h3>
                 <p><strong>£${listing.price}</strong></p>
                 <p>${listing.itemCondition} • ${listing.category}</p>
@@ -239,7 +279,7 @@
             grid.appendChild(card);
         });
 
-        renderPagination(totalPages);
+        renderPagination(data.totalPages);
     }
 
     function renderPagination(totalPages) {
