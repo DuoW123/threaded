@@ -14,7 +14,7 @@
         }
 
         .container {
-            max-width: 600px;
+            max-width: 650px;
             margin: 50px auto;
             background: white;
             padding: 35px;
@@ -62,6 +62,52 @@
             background: #ff9ad0;
         }
 
+        .image-preview {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .image-wrapper {
+            position: relative;
+            display: inline-block;
+            border-radius: 8px;
+            transition: 0.2s;
+            padding: 4px;
+            background: white;
+        }
+
+        .image-wrapper img {
+            height: 120px;
+            width: 120px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid black;
+            margin: 4px;
+        }
+
+        .trash-icon {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff4d4d;
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            border: 2px solid black;
+        }
+
+        .trash-icon:hover {
+            background: #ff1a1a;
+        }
+
         .message {
             margin-top: 15px;
             text-align: center;
@@ -107,15 +153,16 @@
 
     <select id="category">
         <option value="">Select Category</option>
-        <option value="ELECTRONICS">Electronics</option>
-        <option value="FASHION">Fashion</option>
-        <option value="HOME">Home</option>
-        <option value="SPORTS">Sports</option>
+        <option value="CLOTHING">Clothing</option>
+        <option value="FOOTWEAR">Footwear</option>
+        <option value="ACCESSORIES">Accessories</option>
+        <option value="SPORTSWEAR">Sportswear</option>
         <option value="OTHER">Other</option>
     </select>
 
     <h3 style="font-weight:600; margin-top:20px;">Upload Images</h3>
     <input id="images" type="file" multiple>
+    <div id="imagePreview" class="image-preview"></div>
 
     <button id="create-btn">Create Listing</button>
 
@@ -125,10 +172,56 @@
 <script>
     const createBtn = document.getElementById("create-btn");
     const messageBox = document.getElementById("message");
+    const imageInput = document.getElementById("images");
+    let selectedFiles = [];
 
     function showMessage(text, type="error") {
         messageBox.textContent = text;
         messageBox.className = "message " + type;
+    }
+
+    imageInput.addEventListener("change", function () {
+        const newFiles = Array.from(this.files);
+        selectedFiles = selectedFiles.concat(newFiles);
+        updateFileInput();
+        renderPreviews();
+    });
+
+
+    function renderPreviews() {
+        const preview = document.getElementById("imagePreview");
+        preview.innerHTML = "";
+
+        selectedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const wrapper = document.createElement("div");
+                wrapper.className = "image-wrapper";
+
+                const img = document.createElement("img");
+                img.src = e.target.result;
+
+                const trash = document.createElement("div");
+                trash.className = "trash-icon";
+                trash.innerHTML = "🗑️";
+                trash.onclick = () => {
+                    selectedFiles.splice(index, 1);
+                    updateFileInput();
+                    renderPreviews();
+                };
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(trash);
+                preview.appendChild(wrapper);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function updateFileInput() {
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(f => dataTransfer.items.add(f));
+        imageInput.files = dataTransfer.files;
     }
 
     createBtn.onclick = async () => {
@@ -139,9 +232,8 @@
         const size = document.getElementById("size").value;
         const condition = document.getElementById("condition").value;
         const category = document.getElementById("category").value;
-        const images = document.getElementById("images").files;
 
-        if (!title || !description || !price || !brand || !size || !condition || !category || images.length === 0) {
+        if (!title || !description || !price || !brand || !size || !condition || !category || selectedFiles.length === 0) {
             showMessage("Please fill in all fields.", "error");
             return;
         }
@@ -160,9 +252,7 @@
 
         formData.append("data", JSON.stringify(jsonData));
 
-        for (let i = 0; i < images.length; i++) {
-            formData.append("images", images[i]);
-        }
+        selectedFiles.forEach(file => formData.append("images", file));
 
         const res = await fetch("http://localhost:8080/api/listings", {
             method: "POST",
