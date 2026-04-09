@@ -58,7 +58,6 @@ public class ListingService {
             addImagesToListing(listing, imageRecords);
         }
 
-        //TODO
         return "Temporary String (return actual responses in the future)";
     }
 
@@ -148,12 +147,14 @@ public class ListingService {
     }
 
     @Transactional
-    public String handleUpdateListing(Long id, UpdateListingRequest request, List<MultipartFile> newImages, HttpServletRequest httpRequest) {
+    public String handleUpdateListing(Long id, UpdateListingRequest request, List<MultipartFile> newImages, List<String> deleteImages, HttpServletRequest httpRequest) {
         Listing listing = verifyListingOwnership(id, httpRequest);
 
         updateListingAttributes(listing, request);
 
-        deleteImages(listing, request.getDeleteImageIds());
+        if (deleteImages != null && !deleteImages.isEmpty()) {
+            deleteImagesByPublicId(listing, deleteImages);
+        }
 
         if (newImages != null && !newImages.isEmpty()) {
             List<ImageRecord> imageRecords = uploadImages(newImages);
@@ -191,20 +192,19 @@ public class ListingService {
         if (request.getCategory() != null) listing.setCategory(request.getCategory());
     }
 
-    public void deleteImages(Listing listing, List<Long> deleteImageIds) {
-        if (deleteImageIds == null || deleteImageIds.isEmpty()) return;
-
-        for (Long id : deleteImageIds) {
-            ListingImage listingImage = listingImageRepository.findById(id).orElseThrow(() -> new RuntimeException("Image not found"));
+    public void deleteImagesByPublicId(Listing listing, List<String> publicIds) {
+        for (String publicId : publicIds) {
+            ListingImage listingImage = listingImageRepository.findByPublicId(publicId)
+                    .orElseThrow(() -> new RuntimeException("Image not found: " + publicId));
 
             if (!listingImage.getListing().getId().equals(listing.getId())) {
-                throw new RuntimeException("Image doesn't belong to the specified listing");
+                throw new RuntimeException("Image does not belong to this listing");
             }
 
             try {
-                cloudinary.uploader().destroy(listingImage.getPublicId(), ObjectUtils.emptyMap());
+                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
             } catch (IOException e) {
-                throw new RuntimeException("Failed to delete image: ", e);
+                throw new RuntimeException("Failed to delete image from Cloudinary", e);
             }
 
             listingImageRepository.delete(listingImage);
