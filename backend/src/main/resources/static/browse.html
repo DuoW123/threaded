@@ -94,6 +94,31 @@
             color: #444;
             font-size: 14px;
         }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+            gap: 10px;
+        }
+
+        .pagination button {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 2px solid black;
+            background: #ff7ebf;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .pagination button.active {
+            background: black;
+            color: white;
+        }
+
+        .pagination button:hover {
+            background: #ff9ad0;
+        }
     </style>
 </head>
 <body>
@@ -138,13 +163,22 @@
         <input id="minPrice" type="number" placeholder="Min £" step="0.01">
         <input id="maxPrice" type="number" placeholder="Max £" step="0.01">
 
-        <button onclick="loadListings()">Filter</button>
+        <button onclick="applyFilters()">Filter</button>
     </div>
 
     <div id="grid" class="grid"></div>
+    <div id="pagination" class="pagination"></div>
 </div>
 
 <script>
+    let currentPage = 0;
+    const pageSize = 12;
+
+    function applyFilters() {
+        currentPage = 0;
+        loadListings();
+    }
+
     async function loadListings() {
         const search = document.getElementById("search").value;
         const size = document.getElementById("size").value;
@@ -157,6 +191,8 @@
         grid.innerHTML = "Loading...";
 
         const params = new URLSearchParams();
+        params.append("page", currentPage);
+        params.append("pageSize", pageSize);
 
         if (search) params.append("search", search);
         if (size) params.append("size", size);
@@ -165,18 +201,19 @@
         if (minPrice) params.append("minPrice", minPrice);
         if (maxPrice) params.append("maxPrice", maxPrice);
 
-        const url = params.toString()
-            ? `http://localhost:8080/api/listings?${params.toString()}`
-            : `http://localhost:8080/api/listings`;
+        const url = `http://localhost:8080/api/listings?${params.toString()}`;
 
         const res = await fetch(url, { credentials: "include" });
         const data = await res.json();
-        const listings = Array.isArray(data) ? data : Object.values(data);
+
+        const listings = data.content;
+        const totalPages = data.totalPages;
 
         grid.innerHTML = "";
 
         if (!listings || listings.length === 0) {
             grid.innerHTML = "<p>No listings found.</p>";
+            document.getElementById("pagination").innerHTML = "";
             return;
         }
 
@@ -201,6 +238,44 @@
 
             grid.appendChild(card);
         });
+
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+        const pagination = document.getElementById("pagination");
+        pagination.innerHTML = "";
+
+        if (totalPages <= 1) return;
+
+        const prev = document.createElement("button");
+        prev.textContent = "Prev";
+        prev.disabled = currentPage === 0;
+        prev.onclick = () => {
+            currentPage--;
+            loadListings();
+        };
+        pagination.appendChild(prev);
+
+        for (let i = 0; i < totalPages; i++) {
+            const btn = document.createElement("button");
+            btn.textContent = i + 1;
+            if (i === currentPage) btn.classList.add("active");
+            btn.onclick = () => {
+                currentPage = i;
+                loadListings();
+            };
+            pagination.appendChild(btn);
+        }
+
+        const next = document.createElement("button");
+        next.textContent = "Next";
+        next.disabled = currentPage === totalPages - 1;
+        next.onclick = () => {
+            currentPage++;
+            loadListings();
+        };
+        pagination.appendChild(next);
     }
 
     loadListings();
