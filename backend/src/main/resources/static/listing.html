@@ -15,9 +15,9 @@
         }
 
         .container {
-            padding: 35px;
+            padding: 30px;
             max-width: 900px;
-            margin: 40px auto;
+            margin: 30px auto;
             background: white;
             border-radius: 12px;
             border: 3px solid #ff7ebf;
@@ -39,18 +39,64 @@
             background: #333;
         }
 
-        .gallery {
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin: 20px auto 0 auto;
             display: flex;
-            gap: 15px;
-            overflow-x: auto;
-            margin: 20px 0;
+            justify-content: center;
+            align-items: center;
         }
 
-        .gallery img {
-            height: 260px;
+        .carousel-image {
+            max-width: 100%;
+            max-height: 650px;
+            object-fit: contain;
+            border-radius: 12px;
+            border: 3px solid black;
+            cursor: zoom-in;
+            position: relative;
+            z-index: 2;
+        }
+
+        .arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ff7ebf;
+            border: 3px solid black;
+            color: black;
+            font-size: 26px;
+            font-weight: 800;
+            width: 48px;
+            height: 48px;
             border-radius: 10px;
-            object-fit: cover;
-            border: 2px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .arrow:hover {
+            background: #ff9ad0;
+        }
+
+        .arrow-left {
+            left: 25%;
+        }
+
+        .arrow-right {
+            right: 25%;
+        }
+
+        .image-count {
+            text-align: center;
+            font-weight: 600;
+            font-size: 17px;
+            margin-top: 4px;
+            margin-bottom: 15px;
         }
 
         h2 {
@@ -128,7 +174,13 @@
 <div class="container">
     <a href="/home.html" class="back-btn">← Back</a>
 
-    <div id="gallery" class="gallery"></div>
+    <div class="carousel-container">
+        <div class="arrow arrow-left" onclick="prevImage()">←</div>
+        <img id="carouselImage" class="carousel-image" onclick="openFullImage()">
+        <div class="arrow arrow-right" onclick="nextImage()">→</div>
+    </div>
+
+    <div id="imageCount" class="image-count"></div>
 
     <h2 id="title"></h2>
     <div id="price" class="price"></div>
@@ -144,6 +196,8 @@
 
 <script>
 let listingData = null;
+let images = [];
+let currentIndex = 0;
 
 async function loadListing() {
     const params = new URLSearchParams(window.location.search);
@@ -173,17 +227,38 @@ async function loadListing() {
     document.getElementById("meta").textContent =
         `${listing.brand} • Size ${listing.size} • ${listing.itemCondition} • ${listing.category}`;
 
-    const gallery = document.getElementById("gallery");
-    gallery.innerHTML = "";
-
     if (listing.images && listing.images.length > 0) {
-        listing.images.forEach(imgObj => {
-            const img = document.createElement("img");
-            img.src = imgObj.imageUrl;
-            gallery.appendChild(img);
-        });
+        images = listing.images.map(i => i.imageUrl);
+        document.getElementById("carouselImage").src = images[0];
+        updateImageCount();
     } else {
-        gallery.innerHTML = "<p>No images available.</p>";
+        document.getElementById("carouselImage").src = "";
+        document.getElementById("imageCount").textContent = "";
+    }
+}
+
+function updateImageCount() {
+    document.getElementById("imageCount").textContent =
+        (currentIndex + 1) + " / " + images.length;
+}
+
+function prevImage() {
+    if (images.length === 0) return;
+    currentIndex = (currentIndex - 1 + images.length) % images.length;
+    document.getElementById("carouselImage").src = images[currentIndex];
+    updateImageCount();
+}
+
+function nextImage() {
+    if (images.length === 0) return;
+    currentIndex = (currentIndex + 1) % images.length;
+    document.getElementById("carouselImage").src = images[currentIndex];
+    updateImageCount();
+}
+
+function openFullImage() {
+    if (images.length > 0) {
+        window.open(images[currentIndex], "_blank");
     }
 }
 
