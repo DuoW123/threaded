@@ -62,6 +62,21 @@
             background: #ff9ad0;
         }
 
+        #dropZone {
+            border: 3px dashed #ff7ebf;
+            background: #ffe6f4;
+            padding: 30px;
+            text-align: center;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        #dropZone.dragover {
+            background: #ffbfe5;
+        }
+
         .image-preview {
             display: flex;
             gap: 15px;
@@ -73,7 +88,6 @@
             position: relative;
             display: inline-block;
             border-radius: 8px;
-            transition: 0.2s;
             padding: 4px;
             background: white;
         }
@@ -161,7 +175,10 @@
     </select>
 
     <h3 style="font-weight:600; margin-top:20px;">Upload Images</h3>
-    <input id="images" type="file" multiple>
+
+    <div id="dropZone">Drag & Drop Images Here</div>
+
+    <input id="images" type="file" multiple style="margin-top:10px;">
     <div id="imagePreview" class="image-preview"></div>
 
     <button id="create-btn">Create Listing</button>
@@ -173,12 +190,31 @@
     const createBtn = document.getElementById("create-btn");
     const messageBox = document.getElementById("message");
     const imageInput = document.getElementById("images");
+    const dropZone = document.getElementById("dropZone");
     let selectedFiles = [];
 
     function showMessage(text, type="error") {
         messageBox.textContent = text;
         messageBox.className = "message " + type;
     }
+
+    dropZone.addEventListener("dragover", e => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragover");
+    });
+
+    dropZone.addEventListener("drop", e => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        const dropped = Array.from(e.dataTransfer.files);
+        selectedFiles = selectedFiles.concat(dropped);
+        updateFileInput();
+        renderPreviews();
+    });
 
     imageInput.addEventListener("change", function () {
         const newFiles = Array.from(this.files);
@@ -187,20 +223,16 @@
         renderPreviews();
     });
 
-
     function renderPreviews() {
         const preview = document.getElementById("imagePreview");
         preview.innerHTML = "";
-
         selectedFiles.forEach((file, index) => {
             const reader = new FileReader();
             reader.onload = e => {
                 const wrapper = document.createElement("div");
                 wrapper.className = "image-wrapper";
-
                 const img = document.createElement("img");
                 img.src = e.target.result;
-
                 const trash = document.createElement("div");
                 trash.className = "trash-icon";
                 trash.innerHTML = "🗑️";
@@ -209,7 +241,6 @@
                     updateFileInput();
                     renderPreviews();
                 };
-
                 wrapper.appendChild(img);
                 wrapper.appendChild(trash);
                 preview.appendChild(wrapper);
@@ -251,7 +282,6 @@
         };
 
         formData.append("data", JSON.stringify(jsonData));
-
         selectedFiles.forEach(file => formData.append("images", file));
 
         const res = await fetch("http://localhost:8080/api/listings", {

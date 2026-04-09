@@ -75,6 +75,21 @@
             background: #333;
         }
 
+        #dropZone {
+            border: 3px dashed #ff7ebf;
+            background: #ffe6f4;
+            padding: 30px;
+            text-align: center;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        #dropZone.dragover {
+            background: #ffbfe5;
+        }
+
         .image-preview {
             display: flex;
             gap: 15px;
@@ -186,7 +201,10 @@
     <div id="existingImages" class="image-preview"></div>
 
     <h3 style="font-weight:600; margin-top:20px;">Upload New Images (optional)</h3>
-    <input id="newImages" type="file" multiple>
+
+    <div id="dropZone">Drag & Drop Images Here</div>
+
+    <input id="newImages" type="file" multiple style="margin-top:10px;">
     <div id="newImagePreview" class="image-preview"></div>
 
     <button id="save-btn">Save Changes</button>
@@ -197,6 +215,7 @@
 
 <script>
 let listingId = null;
+let newSelectedFiles = [];
 
 function showMessage(text, type="error") {
     const box = document.getElementById("message");
@@ -253,25 +272,56 @@ async function loadListing() {
     });
 }
 
-document.getElementById("newImages").addEventListener("change", function () {
+const dropZone = document.getElementById("dropZone");
+const newImagesInput = document.getElementById("newImages");
+
+dropZone.addEventListener("dragover", e => {
+    e.preventDefault();
+    dropZone.classList.add("dragover");
+});
+
+dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("dragover");
+});
+
+dropZone.addEventListener("drop", e => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+    const dropped = Array.from(e.dataTransfer.files);
+    newSelectedFiles = newSelectedFiles.concat(dropped);
+    updateNewImagesInput();
+    renderNewPreviews();
+});
+
+newImagesInput.addEventListener("change", function () {
+    const newFiles = Array.from(this.files);
+    newSelectedFiles = newSelectedFiles.concat(newFiles);
+    updateNewImagesInput();
+    renderNewPreviews();
+});
+
+function updateNewImagesInput() {
+    const dataTransfer = new DataTransfer();
+    newSelectedFiles.forEach(f => dataTransfer.items.add(f));
+    newImagesInput.files = dataTransfer.files;
+}
+
+function renderNewPreviews() {
     const preview = document.getElementById("newImagePreview");
     preview.innerHTML = "";
-
-    Array.from(this.files).forEach(file => {
+    newSelectedFiles.forEach(file => {
         const reader = new FileReader();
         reader.onload = e => {
             const wrapper = document.createElement("div");
             wrapper.className = "image-wrapper";
-
             const img = document.createElement("img");
             img.src = e.target.result;
-
             wrapper.appendChild(img);
             preview.appendChild(wrapper);
         };
         reader.readAsDataURL(file);
     });
-});
+}
 
 document.getElementById("save-btn").onclick = async () => {
     const updated = {
@@ -294,8 +344,7 @@ document.getElementById("save-btn").onclick = async () => {
 
     formData.append("deleteImages", JSON.stringify(toDelete));
 
-    const newImages = document.getElementById("newImages").files;
-    for (let img of newImages) {
+    for (let img of newImagesInput.files) {
         formData.append("images", img);
     }
 
