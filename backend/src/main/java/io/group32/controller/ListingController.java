@@ -67,13 +67,19 @@ public class ListingController {
             @PathVariable Long id,
             @RequestPart("data") String rawJson,
             @RequestPart(value = "images", required = false) List<MultipartFile> newImages,
+            @RequestPart(value = "deleteImages", required = false) String deleteImagesJson,
             HttpServletRequest httpRequest
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             UpdateListingRequest request = mapper.readValue(rawJson, UpdateListingRequest.class);
 
-            return listingService.handleUpdateListing(id, request, newImages, httpRequest);
+            List<String> deleteImages = null;
+            if (deleteImagesJson != null) {
+                deleteImages = mapper.readValue(deleteImagesJson, List.class);
+            }
+
+            return listingService.handleUpdateListing(id, request, newImages, deleteImages, httpRequest);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -81,9 +87,10 @@ public class ListingController {
         }
     }
 
+
     @DeleteMapping("/{id}")
     public String deleteListing(
-            Long id,
+            @PathVariable Long id,
             HttpServletRequest httpRequest
     ) {
         return listingService.deleteListing(id, httpRequest);
