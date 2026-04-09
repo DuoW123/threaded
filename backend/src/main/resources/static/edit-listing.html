@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Edit Listing</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -14,7 +15,7 @@
         }
 
         .container {
-            max-width: 600px;
+            max-width: 650px;
             margin: 50px auto;
             background: white;
             padding: 35px;
@@ -76,16 +77,57 @@
 
         .image-preview {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             overflow-x: auto;
-            margin-top: 10px;
+            padding: 10px 0;
         }
 
-        .image-preview img {
+        .image-wrapper {
+            position: relative;
+            display: inline-block;
+            border-radius: 8px;
+            transition: 0.2s;
+            padding: 4px;
+            background: white;
+        }
+
+        .image-wrapper.selected {
+            outline: 4px solid red;
+            outline-offset: 0;
+        }
+
+        .image-wrapper img {
             height: 120px;
+            width: 120px;
             border-radius: 8px;
             object-fit: cover;
             border: 2px solid black;
+            margin: 4px;
+        }
+
+        .trash-icon {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff4d4d;
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            border: 2px solid black;
+        }
+
+        .trash-icon:hover {
+            background: #ff1a1a;
+        }
+
+        .delete-checkbox {
+            display: none;
         }
 
         .message {
@@ -133,10 +175,10 @@
 
     <select id="category">
         <option value="">Select Category</option>
-        <option value="ELECTRONICS">Electronics</option>
-        <option value="FASHION">Fashion</option>
-        <option value="HOME">Home</option>
-        <option value="SPORTS">Sports</option>
+        <option value="CLOTHING">Clothing</option>
+        <option value="FOOTWEAR">Footwear</option>
+        <option value="ACCESSORIES">Accessories</option>
+        <option value="SPORTSWEAR">Sportswear</option>
         <option value="OTHER">Other</option>
     </select>
 
@@ -145,6 +187,7 @@
 
     <h3 style="font-weight:600; margin-top:20px;">Upload New Images (optional)</h3>
     <input id="newImages" type="file" multiple>
+    <div id="newImagePreview" class="image-preview"></div>
 
     <button id="save-btn">Save Changes</button>
     <button id="cancel-btn">Cancel</button>
@@ -165,7 +208,7 @@ async function loadListing() {
     const params = new URLSearchParams(window.location.search);
     listingId = params.get("id");
 
-    const res = await fetch(`http://localhost:8080/api/listings/${listingId}`, {
+    const res = await fetch(`/api/listings/${listingId}`, {
         credentials: "include"
     });
 
@@ -180,12 +223,55 @@ async function loadListing() {
     document.getElementById("category").value = listing.category;
 
     const container = document.getElementById("existingImages");
+
     listing.images.forEach(img => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "image-wrapper";
+
         const image = document.createElement("img");
         image.src = img.imageUrl;
-        container.appendChild(image);
+        wrapper.appendChild(image);
+
+        if (img.publicId) {
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.className = "delete-checkbox";
+            checkbox.value = img.publicId;
+            wrapper.appendChild(checkbox);
+
+            const trash = document.createElement("div");
+            trash.className = "trash-icon";
+            trash.innerHTML = "🗑️";
+            trash.onclick = () => {
+                checkbox.checked = !checkbox.checked;
+                wrapper.classList.toggle("selected", checkbox.checked);
+            };
+            wrapper.appendChild(trash);
+        }
+
+        container.appendChild(wrapper);
     });
 }
+
+document.getElementById("newImages").addEventListener("change", function () {
+    const preview = document.getElementById("newImagePreview");
+    preview.innerHTML = "";
+
+    Array.from(this.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const wrapper = document.createElement("div");
+            wrapper.className = "image-wrapper";
+
+            const img = document.createElement("img");
+            img.src = e.target.result;
+
+            wrapper.appendChild(img);
+            preview.appendChild(wrapper);
+        };
+        reader.readAsDataURL(file);
+    });
+});
 
 document.getElementById("save-btn").onclick = async () => {
     const updated = {
@@ -201,12 +287,19 @@ document.getElementById("save-btn").onclick = async () => {
     const formData = new FormData();
     formData.append("data", JSON.stringify(updated));
 
+    const toDelete = [];
+    document.querySelectorAll(".delete-checkbox:checked").forEach(cb => {
+        toDelete.push(cb.value);
+    });
+
+    formData.append("deleteImages", JSON.stringify(toDelete));
+
     const newImages = document.getElementById("newImages").files;
     for (let img of newImages) {
         formData.append("images", img);
     }
 
-    const res = await fetch(`http://localhost:8080/api/listings/${listingId}`, {
+    const res = await fetch(`/api/listings/${listingId}`, {
         method: "PUT",
         body: formData,
         credentials: "include"
