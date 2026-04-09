@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -114,7 +115,16 @@ public class ListingService {
         return optionalListing.get();
     }
 
-    public List<Listing> getListings(String search, String size, String condition, String category, BigDecimal minPrice, BigDecimal maxPrice) {
+    public Sort getSortingMethod(String sortingMethod) {
+        return switch (sortingMethod != null ? sortingMethod : "newest") {
+            case "price_ascending" -> Sort.by(Sort.Direction.ASC, "price");
+            case "price_descending" -> Sort.by(Sort.Direction.DESC, "price");
+            case "newest" -> Sort.by(Sort.Direction.DESC, "creationDate");
+            default -> Sort.by(Sort.Direction.DESC, "creationDate");
+        };
+    }
+
+    public Page<Listing> getListings(String search, String size, String condition, String category, BigDecimal minPrice, BigDecimal maxPrice, int page, int pageSize, String sortBy) {
         Specification<Listing> specification = Specification.where((listing, query, builder) -> builder.conjunction());
 
         if (search != null && !search.isBlank()) {
@@ -135,44 +145,12 @@ public class ListingService {
 
         specification = specification.and(ListingSpecifications.priceBetween(minPrice, maxPrice));
 
-        return listingRepository.findAll(specification);
+        Sort sortingMethod = getSortingMethod(sortBy);
+
+        return listingRepository.findAll(specification, PageRequest.of(page, pageSize, sortingMethod));
     }
 
-    public Page<Listing> getListingsPaged(String search, String size, String condition, String category, BigDecimal minPrice, BigDecimal maxPrice, int page, int pageSize) {
-        Specification<Listing> specification = Specification.where((listing, query, builder) -> builder.conjunction());
-
-        if (search != null && !search.isBlank()) {
-            specification = specification.and(ListingSpecifications.fuzzySearch(search));
-        }
-
-        if (size != null && !size.isBlank()) {
-            specification = specification.and(ListingSpecifications.hasSize(size));
-        }
-
-        if (condition != null && !condition.isBlank()) {
-            specification = specification.and(ListingSpecifications.hasCondition(condition));
-        }
-
-        if (category != null && !category.isBlank()) {
-            specification = specification.and(ListingSpecifications.hasCategory(category));
-        }
-
-        specification = specification.and(ListingSpecifications.priceBetween(minPrice, maxPrice));
-
-        return listingRepository.findAll(specification, PageRequest.of(page, pageSize));
-    }
-
-    public List<Listing> getListingsForCurrentUser(HttpServletRequest request) {
-        User user = sessionService.getUser(request);
-
-        if (user == null) {
-            throw new RuntimeException("User not authenticated");
-        }
-
-        return listingRepository.findByUser(user);
-    }
-
-    public Page<Listing> getListingsForCurrentUserPaged(HttpServletRequest request, int page, int pageSize) {
+    public Page<Listing> getListingsForCurrentUser(HttpServletRequest request, int page, int pageSize) {
         User user = sessionService.getUser(request);
 
         if (user == null) {

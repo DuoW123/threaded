@@ -16,10 +16,10 @@ public class ListingSpecifications {
             String lowerText = text.toLowerCase();
 
             return builder.or(
-                    builder.greaterThan(builder.function("similarity", Double.class, builder.lower(listing.get("title")), builder.literal(lowerText)), 0.25),
+                    builder.greaterThan(builder.function("similarity", Double.class, builder.lower(listing.get("title")), builder.literal(lowerText)), 0.20),
                     builder.like(builder.lower(listing.get("title")), "%" + lowerText + "%"),
-                    builder.greaterThan(builder.function("similarity", Double.class, builder.lower(listing.get("description")), builder.literal(lowerText)), 0.25),
-                    builder.greaterThan(builder.function("similarity", Double.class, builder.lower(listing.get("brand")), builder.literal(lowerText)), 0.25)
+                    builder.greaterThan(builder.function("similarity", Double.class, builder.lower(listing.get("description")), builder.literal(lowerText)), 0.20),
+                    builder.greaterThan(builder.function("similarity", Double.class, builder.lower(listing.get("brand")), builder.literal(lowerText)), 0.20)
             );
         };
     }
