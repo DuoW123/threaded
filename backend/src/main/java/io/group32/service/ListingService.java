@@ -13,6 +13,8 @@ import io.group32.repository.ListingRepository;
 import io.group32.repository.specification.ListingSpecifications;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -136,6 +138,30 @@ public class ListingService {
         return listingRepository.findAll(specification);
     }
 
+    public Page<Listing> getListingsPaged(String search, String size, String condition, String category, BigDecimal minPrice, BigDecimal maxPrice, int page, int pageSize) {
+        Specification<Listing> specification = Specification.where((listing, query, builder) -> builder.conjunction());
+
+        if (search != null && !search.isBlank()) {
+            specification = specification.and(ListingSpecifications.fuzzySearch(search));
+        }
+
+        if (size != null && !size.isBlank()) {
+            specification = specification.and(ListingSpecifications.hasSize(size));
+        }
+
+        if (condition != null && !condition.isBlank()) {
+            specification = specification.and(ListingSpecifications.hasCondition(condition));
+        }
+
+        if (category != null && !category.isBlank()) {
+            specification = specification.and(ListingSpecifications.hasCategory(category));
+        }
+
+        specification = specification.and(ListingSpecifications.priceBetween(minPrice, maxPrice));
+
+        return listingRepository.findAll(specification, PageRequest.of(page, pageSize));
+    }
+
     public List<Listing> getListingsForCurrentUser(HttpServletRequest request) {
         User user = sessionService.getUser(request);
 
@@ -144,6 +170,19 @@ public class ListingService {
         }
 
         return listingRepository.findByUser(user);
+    }
+
+    public Page<Listing> getListingsForCurrentUserPaged(HttpServletRequest request, int page, int pageSize) {
+        User user = sessionService.getUser(request);
+
+        if (user == null) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        return listingRepository.findAll(
+                ListingSpecifications.belongsToUser(user),
+                PageRequest.of(page, pageSize)
+        );
     }
 
     @Transactional

@@ -1,6 +1,7 @@
 package io.group32.repository.specification;
 
 import io.group32.model.Listing;
+import io.group32.model.User;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
@@ -50,4 +51,10 @@ public class ListingSpecifications {
             }
         };
     }
+
+    public static Specification<Listing> belongsToUser(User user) {
+        return (listing, query, builder) ->
+                builder.equal(listing.get("user"), user);
+    }
+
 }

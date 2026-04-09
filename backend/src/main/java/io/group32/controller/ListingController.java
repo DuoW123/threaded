@@ -6,6 +6,7 @@ import io.group32.dto.request.listings.UpdateListingRequest;
 import io.group32.model.Listing;
 import io.group32.service.ListingService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,8 +42,12 @@ public class ListingController {
     }
 
     @GetMapping("/me")
-    public List<Listing> getMyListings(HttpServletRequest request) {
-        return listingService.getListingsForCurrentUser(request);
+    public Page<Listing> getMyListings(
+            HttpServletRequest request,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int pageSize
+    ) {
+        return listingService.getListingsForCurrentUserPaged(request, page, pageSize);
     }
 
     @GetMapping("/{id}")
@@ -51,15 +56,17 @@ public class ListingController {
     }
 
     @GetMapping
-    public List<Listing> getListings(
+    public Page<Listing> getListings(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String size,
             @RequestParam(required = false) String condition,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int pageSize
     ) {
-        return listingService.getListings(search, size, condition, category, minPrice, maxPrice);
+        return listingService.getListingsPaged(search, size, condition, category, minPrice, maxPrice, page, pageSize);
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
