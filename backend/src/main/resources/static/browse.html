@@ -148,11 +148,29 @@
 <body>
 
 <div id="navbar"></div>
+
+<script>
+async function updateCartCount() {
+    const el = document.getElementById("cartCount");
+    if (!el) return;
+
+    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    if (!res.ok) {
+        el.textContent = 0;
+        return;
+    }
+
+    const cart = await res.json();
+    el.textContent = cart.length;
+}
+</script>
+
 <script>
     fetch("/navbar.html")
         .then(res => res.text())
         .then(html => {
             document.getElementById("navbar").innerHTML = html;
+            updateCartCount();
         });
 </script>
 
@@ -250,10 +268,12 @@
         const res = await fetch(`/api/listings?${params.toString()}`, { credentials: "include" });
         const data = await res.json();
 
+        const filtered = data.content.filter(item => !item.sold);
+
         const grid = document.getElementById("grid");
         grid.innerHTML = "";
 
-        if (!data.content || data.content.length === 0) {
+        if (!filtered || filtered.length === 0) {
             grid.innerHTML = `
                 <div style="
                     grid-column: 1 / -1;
@@ -271,7 +291,7 @@
             return;
         }
 
-        data.content.forEach(listing => {
+        filtered.forEach(listing => {
             const card = document.createElement("div");
             card.className = "card";
             card.onclick = () => window.location.href = `/listing.html?id=${listing.id}`;

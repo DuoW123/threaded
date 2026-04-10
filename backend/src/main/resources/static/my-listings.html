@@ -40,10 +40,15 @@
             border: 3px solid #ff7ebf;
             text-align: center;
             transition: transform 0.1s ease;
+            position: relative;
         }
 
         .listing-card:hover {
             transform: scale(1.03);
+        }
+
+        .image-wrapper {
+            position: relative;
         }
 
         .listing-card img {
@@ -52,6 +57,22 @@
             object-fit: cover;
             border-radius: 8px;
             border: 2px solid black;
+        }
+
+        .sold-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 800;
+            color: #ff7ebf;
+            text-shadow: 0 0 6px black;
+            pointer-events: none;
         }
 
         .listing-card h4 {
@@ -128,11 +149,29 @@
 <body>
 
 <div id="navbar"></div>
+
+<script>
+async function updateCartCount() {
+    const el = document.getElementById("cartCount");
+    if (!el) return;
+
+    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    if (!res.ok) {
+        el.textContent = 0;
+        return;
+    }
+
+    const cart = await res.json();
+    el.textContent = cart.length;
+}
+</script>
+
 <script>
     fetch("/navbar.html")
         .then(res => res.text())
         .then(html => {
             document.getElementById("navbar").innerHTML = html;
+            updateCartCount();
         });
 </script>
 
@@ -208,13 +247,25 @@ async function loadMyListings() {
                 ? item.images[0].imageUrl
                 : "/placeholder.png";
 
+        let overlay = "";
+        let editButton = "";
+
+        if (item.sold) {
+            overlay = `<div class="sold-overlay">SOLD</div>`;
+        } else {
+            editButton = `<button class="btn btn-edit" onclick="editListing(${item.id})">Edit</button>`;
+        }
+
         card.innerHTML = `
-            <img src="${imageUrl}">
+            <div class="image-wrapper">
+                <img src="${imageUrl}">
+                ${overlay}
+            </div>
             <h4>${item.title}</h4>
             <div class="price">£${item.price}</div>
 
             <div class="actions">
-                <button class="btn btn-edit" onclick="editListing(${item.id})">Edit</button>
+                ${editButton}
                 <button class="btn btn-delete" onclick="deleteListing(${item.id})">Delete</button>
             </div>
         `;

@@ -21,8 +21,30 @@
 <body>
 
 <div id="navbar"></div>
+
 <script>
-fetch("/navbar.html").then(r=>r.text()).then(h=>document.getElementById("navbar").innerHTML=h);
+async function updateCartCount() {
+    const el = document.getElementById("cartCount");
+    if (!el) return;
+
+    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    if (!res.ok) {
+        el.textContent = 0;
+        return;
+    }
+
+    const cart = await res.json();
+    el.textContent = cart.length;
+}
+</script>
+
+<script>
+    fetch("/navbar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("navbar").innerHTML = html;
+            updateCartCount();
+        });
 </script>
 
 <div class="container">

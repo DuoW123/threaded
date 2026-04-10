@@ -5,6 +5,7 @@ import io.group32.model.Listing;
 import io.group32.repository.CartItemRepository;
 import io.group32.repository.ListingRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -39,6 +40,7 @@ public class CartService {
         }
     }
 
+    @Transactional
     public void removeFromCart(Long userId, Long listingId) {
         cartRepo.deleteByUserIdAndListingId(userId, listingId);
     }
