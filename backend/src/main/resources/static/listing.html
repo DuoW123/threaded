@@ -167,6 +167,18 @@
         .btn-fav:hover {
             background: #ffcf33;
         }
+
+        #soldBadge {
+            display:none;
+            background:black;
+            color:white;
+            padding:8px 14px;
+            border-radius:8px;
+            font-weight:700;
+            font-size:18px;
+            width:max-content;
+            margin-top:10px;
+        }
     </style>
 </head>
 <body>
@@ -186,6 +198,7 @@
 
     <h2 id="title"></h2>
     <div id="price" class="price"></div>
+    <div id="soldBadge">SOLD</div>
     <div id="meta" class="meta"></div>
     <p id="description"></p>
 
@@ -245,6 +258,18 @@ async function loadListing() {
         images = listing.images.map(i => i.imageUrl);
         document.getElementById("carouselImage").src = images[0];
         updateImageCount();
+    }
+
+    if (listing.sold) {
+        document.getElementById("soldBadge").style.display = "inline-block";
+        const buyBtn = document.querySelector(".btn-buy");
+        const addBtn = document.querySelector(".btn-add");
+        buyBtn.disabled = true;
+        addBtn.disabled = true;
+        buyBtn.style.opacity = "0.4";
+        addBtn.style.opacity = "0.4";
+        buyBtn.style.cursor = "not-allowed";
+        addBtn.style.cursor = "not-allowed";
     }
 }
 

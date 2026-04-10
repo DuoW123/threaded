@@ -88,24 +88,3 @@
         justify-content: center;
     }
 </style>
-
-<script>
-async function updateCartCount() {
-    const el = document.getElementById("cartCount");
-    if (!el) return;
-
-    const res = await fetch("/api/cart", {
-        credentials: "include"
-    });
-
-    if (!res.ok) {
-        el.textContent = 0;
-        return;
-    }
-
-    const cart = await res.json();
-    el.textContent = cart.length;
-}
-
-updateCartCount();
-</script>

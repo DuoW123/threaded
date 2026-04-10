@@ -124,14 +124,19 @@ async function loadNavbar() {
     const res = await fetch("/navbar.html");
     const html = await res.text();
     document.getElementById("navbar").innerHTML = html;
-    updateCartBadgeBackend();
+    updateCartCount();
 }
 
-async function updateCartBadgeBackend() {
+async function updateCartCount() {
     const el = document.getElementById("cartCount");
     if (!el) return;
+
     const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
-    if (!res.ok) return;
+    if (!res.ok) {
+        el.textContent = 0;
+        return;
+    }
+
     const cart = await res.json();
     el.textContent = cart.length;
 }
@@ -176,7 +181,7 @@ async function loadCart() {
                 <div class="item-title">${listing.title}</div>
                 <div class="item-price">£${listing.price}</div>
             </div>
-            <button class="remove-btn" onclick="removeItem(${listing.id})">Remove</button>
+            <button class="remove-btn" onclick="removeItem(${item.listingId})">Remove</button>
         `;
 
         container.appendChild(div);
@@ -191,7 +196,7 @@ async function removeItem(listingId) {
         credentials: "include"
     });
 
-    updateCartBadgeBackend();
+    updateCartCount();
     loadCart();
 }
 
@@ -201,7 +206,7 @@ async function checkout() {
         credentials: "include"
     });
 
-    updateCartBadgeBackend();
+    updateCartCount();
     loadCart();
 }
 
