@@ -6,6 +6,12 @@
         <a href="create-listing.html">Create Listing</a>
         <a href="my-listings.html">My Listings</a>
         <a href="messages-list.html">Messages</a>
+
+        <div class="cart-wrapper" onclick="window.location.href='cart.html'">
+            <img src="/cart-pink.png" class="cart-icon">
+            <div id="cartCount" class="cart-count">0</div>
+        </div>
+
         <a href="profile.html">Profile</a>
     </div>
 </div>
@@ -28,6 +34,11 @@
         letter-spacing: 1px;
     }
 
+    .nav-links {
+        display: flex;
+        align-items: center;
+    }
+
     .nav-links a {
         color: black;
         text-decoration: none;
@@ -39,4 +50,42 @@
     .nav-links a:hover {
         text-decoration: underline;
     }
+
+    .cart-wrapper {
+        position: relative;
+        margin-left: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+
+    .cart-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .cart-count {
+        position: absolute;
+        top: -8px;
+        right: -10px;
+        background: black;
+        color: white;
+        font-size: 14px;
+        font-weight: 700;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 </style>
+
+<script>
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        document.getElementById("cartCount").textContent = cart.length;
+    }
+
+    updateCartCount();
+</script>

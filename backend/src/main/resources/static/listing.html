@@ -141,6 +141,15 @@
             background: #ff9ad0;
         }
 
+        .btn-add {
+            background: white;
+            color: black;
+        }
+
+        .btn-add:hover {
+            background: #ffe6f3;
+        }
+
         .btn-message {
             background: black;
             color: white;
@@ -164,10 +173,18 @@
 
 <div id="navbar"></div>
 <script>
+    function refreshCartBadge() {
+        const el = document.getElementById("cartCount");
+        if (!el) return;
+        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        el.textContent = cart.length;
+    }
+
     fetch("/navbar.html")
         .then(res => res.text())
         .then(html => {
             document.getElementById("navbar").innerHTML = html;
+            refreshCartBadge();
         });
 </script>
 
@@ -189,6 +206,7 @@
 
     <div class="actions">
         <button class="btn btn-buy" onclick="buyNow()">Buy Now</button>
+        <button class="btn btn-add" onclick="addToCart(false)">Add to Cart</button>
         <button class="btn btn-message" onclick="messageSeller()">Message Seller</button>
         <button class="btn btn-fav" onclick="addToFavourites()">★ Add to Favourites</button>
     </div>
@@ -262,8 +280,37 @@ function openFullImage() {
     }
 }
 
+function getCart() {
+    return JSON.parse(localStorage.getItem("cart") || "[]");
+}
+
+function saveCart(cart) {
+    localStorage.setItem("cart", JSON.stringify(cart));
+    if (typeof refreshCartBadge === "function") {
+        refreshCartBadge();
+    }
+}
+
+function addToCart(redirectToCart) {
+    if (!listingData) return;
+    let cart = getCart();
+    const exists = cart.some(item => item.id === listingData.id);
+    if (!exists) {
+        cart.push({
+            id: listingData.id,
+            title: listingData.title,
+            price: listingData.price,
+            image: images.length > 0 ? images[0] : ""
+        });
+        saveCart(cart);
+    }
+    if (redirectToCart) {
+        window.location.href = "/cart.html";
+    }
+}
+
 function buyNow() {
-    alert("Buy Now is not implemented yet — but we can build checkout next.");
+    addToCart(true);
 }
 
 function messageSeller() {
