@@ -164,6 +164,41 @@ async function loadMyListings() {
     const container = document.getElementById("listings");
     container.innerHTML = "";
 
+    if (!listings || listings.length === 0) {
+        container.innerHTML = `
+            <div style="
+                grid-column: 1 / -1;
+                text-align: center;
+                font-size: 32px;
+                font-weight: 700;
+                color: #ff7ebf;
+                margin-top: 100px;
+            ">
+                You don't have any listings yet!
+            </div>
+
+            <div style="
+                grid-column: 1 / -1;
+                text-align: center;
+                margin-top: 20px;
+            ">
+                <button onclick="window.location.href='/create-listing.html'" style="
+                    padding: 14px 22px;
+                    background: #ff7ebf;
+                    border: 2px solid black;
+                    border-radius: 10px;
+                    font-size: 18px;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">
+                    Create your first listing
+                </button>
+            </div>
+        `;
+        document.getElementById("pagination").innerHTML = "";
+        return;
+    }
+
     listings.forEach(item => {
         const card = document.createElement("div");
         card.className = "listing-card";
