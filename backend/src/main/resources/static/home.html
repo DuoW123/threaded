@@ -175,12 +175,12 @@ let currentPage = 0;
 const pageSize = 12;
 
 async function loadListings() {
-    const url = `http://localhost:8080/api/listings?page=${currentPage}&pageSize=${pageSize}`;
+    const url = `http://localhost:8080/api/listings?page=${currentPage}&pageSize=${pageSize}&sold=false`;
 
     const res = await fetch(url, { credentials: "include" });
     const data = await res.json();
 
-    const listings = data.content.filter(item => !item.sold);
+    const listings = data.content;
     const totalPages = data.totalPages;
 
     const container = document.getElementById("listings");

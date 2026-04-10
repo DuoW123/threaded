@@ -248,6 +248,7 @@ async function updateCartCount() {
         const params = new URLSearchParams();
         params.append("page", currentPage);
         params.append("pageSize", pageSize);
+        params.append("sold", "false");
 
         const search = document.getElementById("search").value;
         const size = document.getElementById("size").value;
@@ -268,12 +269,12 @@ async function updateCartCount() {
         const res = await fetch(`/api/listings?${params.toString()}`, { credentials: "include" });
         const data = await res.json();
 
-        const filtered = data.content.filter(item => !item.sold);
+        const listings = data.content;
 
         const grid = document.getElementById("grid");
         grid.innerHTML = "";
 
-        if (!filtered || filtered.length === 0) {
+        if (!listings || listings.length === 0) {
             grid.innerHTML = `
                 <div style="
                     grid-column: 1 / -1;
@@ -291,7 +292,7 @@ async function updateCartCount() {
             return;
         }
 
-        filtered.forEach(listing => {
+        listings.forEach(listing => {
             const card = document.createElement("div");
             card.className = "card";
             card.onclick = () => window.location.href = `/listing.html?id=${listing.id}`;

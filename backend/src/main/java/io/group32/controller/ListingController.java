@@ -66,9 +66,16 @@ public class ListingController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int pageSize,
             @RequestParam(defaultValue = "newest") String sortBy,
+            @RequestParam(required = false) Boolean sold,
             HttpServletRequest request
     ) {
-        return listingService.getListings(search, size, condition, category, minPrice, maxPrice, page, pageSize, sortBy, request);
+        return listingService.getListings(
+                search, size, condition, category,
+                minPrice, maxPrice,
+                page, pageSize,
+                sortBy, sold,
+                request
+        );
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
