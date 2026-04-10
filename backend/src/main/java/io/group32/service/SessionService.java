@@ -22,6 +22,8 @@ public class SessionService {
 
         HttpSession session = request.getSession(true);
         session.setAttribute("SPRING_SECURITY_CONTEXT", context);
+
+        session.setAttribute("userId", user.getId());
     }
 
     public User getUser(HttpServletRequest request) {
