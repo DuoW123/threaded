@@ -10,4 +10,4 @@
 /httpRequests/
 .idea/
 target/
-*.class
+*.class.DS_Store
