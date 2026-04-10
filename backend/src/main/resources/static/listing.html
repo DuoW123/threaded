@@ -141,6 +141,15 @@
             background: #ff9ad0;
         }
 
+        .btn-add {
+            background: white;
+            color: black;
+        }
+
+        .btn-add:hover {
+            background: #ffe6f3;
+        }
+
         .btn-message {
             background: black;
             color: white;
@@ -163,13 +172,6 @@
 <body>
 
 <div id="navbar"></div>
-<script>
-    fetch("/navbar.html")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("navbar").innerHTML = html;
-        });
-</script>
 
 <div class="container">
     <a href="/home.html" class="back-btn">← Back</a>
@@ -189,6 +191,7 @@
 
     <div class="actions">
         <button class="btn btn-buy" onclick="buyNow()">Buy Now</button>
+        <button class="btn btn-add" onclick="addToCart(false)">Add to Cart</button>
         <button class="btn btn-message" onclick="messageSeller()">Message Seller</button>
         <button class="btn btn-fav" onclick="addToFavourites()">★ Add to Favourites</button>
     </div>
@@ -199,14 +202,25 @@ let listingData = null;
 let images = [];
 let currentIndex = 0;
 
+async function loadNavbar() {
+    const res = await fetch("/navbar.html");
+    const html = await res.text();
+    document.getElementById("navbar").innerHTML = html;
+    updateCartBadgeBackend();
+}
+
+async function updateCartBadgeBackend() {
+    const el = document.getElementById("cartCount");
+    if (!el) return;
+    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    if (!res.ok) return;
+    const cart = await res.json();
+    el.textContent = cart.length;
+}
+
 async function loadListing() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-
-    if (!id) {
-        document.body.innerHTML = "<h2>Invalid listing ID.</h2>";
-        return;
-    }
 
     const res = await fetch(`http://localhost:8080/api/listings/${id}`, {
         credentials: "include"
@@ -231,9 +245,6 @@ async function loadListing() {
         images = listing.images.map(i => i.imageUrl);
         document.getElementById("carouselImage").src = images[0];
         updateImageCount();
-    } else {
-        document.getElementById("carouselImage").src = "";
-        document.getElementById("imageCount").textContent = "";
     }
 }
 
@@ -262,8 +273,23 @@ function openFullImage() {
     }
 }
 
+async function addToCart(redirect) {
+    if (!listingData) return;
+
+    await fetch(`http://localhost:8080/api/cart/add/${listingData.id}`, {
+        method: "POST",
+        credentials: "include"
+    });
+
+    updateCartBadgeBackend();
+
+    if (redirect) {
+        window.location.href = "/cart.html";
+    }
+}
+
 function buyNow() {
-    alert("Buy Now is not implemented yet — but we can build checkout next.");
+    addToCart(true);
 }
 
 function messageSeller() {
@@ -274,9 +300,10 @@ function messageSeller() {
 }
 
 function addToFavourites() {
-    alert("Added to favourites (frontend only for now).");
+    alert("Added to favourites (frontend only).");
 }
 
+loadNavbar();
 loadListing();
 </script>
 

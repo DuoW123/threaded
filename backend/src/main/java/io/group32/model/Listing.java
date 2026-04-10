@@ -49,6 +49,9 @@ public class Listing {
     @Column(nullable = false)
     private LocalDateTime creationDate = LocalDateTime.now();
 
+    @Column(nullable = false)
+    private boolean sold = false;
+
     @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<ListingImage> images = new ArrayList<>();
