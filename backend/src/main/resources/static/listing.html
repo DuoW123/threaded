@@ -268,8 +268,9 @@ function buyNow() {
 
 function messageSeller() {
     if (!listingData) return;
-    const seller = listingData.user.username;
-    alert("Messaging " + seller + " — chat system coming next.");
+    const sellerId = listingData.user.id;
+    const listingId = listingData.id;
+    window.location.href = `/messages.html?seller=${sellerId}&listing=${listingId}`;
 }
 
 function addToFavourites() {

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Messages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #fafafa; margin: 0; padding: 0; }
+        .container { max-width: 900px; margin: 30px auto; background: white; padding: 20px; border-radius: 12px; border: 3px solid #ff7ebf; }
+        .user-block { border-bottom: 1px solid #ddd; padding: 10px 0; }
+        .user-name { font-weight: 700; font-size: 18px; margin-bottom: 6px; }
+        .listing-list { display: flex; flex-direction: column; gap: 6px; }
+        .listing-wrapper { position: relative; overflow: hidden; }
+        .listing-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 2px solid black; cursor: pointer; background: #f5f5f5; transform: translateX(0); transition: transform 0.2s ease-out; }
+        .listing-item:hover { background: #ffe6f4; }
+        .listing-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; border: 1px solid #ccc; background: #ddd; flex-shrink: 0; }
+        .listing-text-block { display: flex; flex-direction: column; flex: 1; }
+        .listing-text { font-weight: 600; }
+        .listing-meta { font-size: 12px; color: #555; }
+        .delete-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 90px; background: #ff4b4b; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<div id="navbar"></div>
+<script>
+fetch("/navbar.html").then(r=>r.text()).then(h=>document.getElementById("navbar").innerHTML=h);
+</script>
+
+<div class="container">
+    <h2>Messages</h2>
+    <div id="conversations"></div>
+</div>
+
+<script>
+async function loadConversations() {
+    const res = await fetch("/api/messages/conversations", { credentials: "include" });
+    if (!res.ok) return;
+    const data = await res.json();
+    const container = document.getElementById("conversations");
+    container.innerHTML = "";
+    data.forEach(user => {
+        const userDiv = document.createElement("div");
+        userDiv.className = "user-block";
+
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "user-name";
+        nameDiv.textContent = user.username;
+        userDiv.appendChild(nameDiv);
+
+        const listDiv = document.createElement("div");
+        listDiv.className = "listing-list";
+
+        user.listings.forEach(l => {
+            const wrapper = document.createElement("div");
+            wrapper.className = "listing-wrapper";
+
+            const deleteBg = document.createElement("div");
+            deleteBg.className = "delete-bg";
+            deleteBg.textContent = "Delete";
+
+            const item = document.createElement("div");
+            item.className = "listing-item";
+
+            item.onclick = () => {
+                if (Math.abs(currentOffset) < 30) {
+                    window.location.href = `/messages.html?seller=${user.userId}&listing=${l.listingId}`;
+                }
+            };
+
+            const img = document.createElement("img");
+            img.className = "listing-thumb";
+            if (l.thumbnailUrl) {
+                img.src = l.thumbnailUrl;
+            }
+
+            const textBlock = document.createElement("div");
+            textBlock.className = "listing-text-block";
+
+            const text = document.createElement("div");
+            text.className = "listing-text";
+            text.textContent = l.listingTitle || ("Listing #" + l.listingId);
+
+            const meta = document.createElement("div");
+            meta.className = "listing-meta";
+            meta.textContent = l.lastMessage;
+
+            textBlock.appendChild(text);
+            textBlock.appendChild(meta);
+
+            item.appendChild(img);
+            item.appendChild(textBlock);
+
+            wrapper.appendChild(deleteBg);
+            wrapper.appendChild(item);
+            listDiv.appendChild(wrapper);
+
+            let startX = 0;
+            let currentOffset = 0;
+            let dragging = false;
+
+            function onStart(e) {
+                dragging = true;
+                startX = e.touches ? e.touches[0].clientX : e.clientX;
+                currentOffset = 0;
+            }
+
+            function onMove(e) {
+                if (!dragging) return;
+                const x = e.touches ? e.touches[0].clientX : e.clientX;
+                const delta = x - startX;
+                if (delta < 0) {
+                    currentOffset = Math.max(delta, -90);
+                    item.style.transform = `translateX(${currentOffset}px)`;
+                }
+            }
+
+            async function onEnd() {
+                dragging = false;
+                if (currentOffset < -60) {
+                    item.style.transform = `translateX(-90px)`;
+                    await deleteConversation(user.userId, l.listingId, wrapper);
+                } else {
+                    item.style.transform = `translateX(0)`;
+                }
+            }
+
+            item.addEventListener("mousedown", onStart);
+            window.addEventListener("mousemove", onMove);
+            window.addEventListener("mouseup", onEnd);
+
+            item.addEventListener("touchstart", onStart, { passive: true });
+            item.addEventListener("touchmove", onMove, { passive: true });
+            item.addEventListener("touchend", onEnd);
+        });
+
+        userDiv.appendChild(listDiv);
+        container.appendChild(userDiv);
+    });
+}
+
+async function deleteConversation(sellerId, listingId, wrapper) {
+    await fetch(`/api/messages/conversation?seller=${sellerId}&listing=${listingId}`, {
+        method: "DELETE",
+        credentials: "include"
+    });
+    wrapper.remove();
+}
+
+loadConversations();
+setInterval(loadConversations, 5000);
+</script>
+
+</body>
+</html>
