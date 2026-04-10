@@ -25,15 +25,15 @@ public class ListingSpecifications {
     }
 
     public static Specification<Listing> hasSize(String size) {
-        return(listing, query, builder) -> size == null ? null : builder.equal(listing.get("size"), size);
+        return (listing, query, builder) -> size == null ? null : builder.equal(listing.get("size"), size);
     }
 
     public static Specification<Listing> hasCondition(String condition) {
-        return(listing, query, builder) -> condition == null ? null : builder.equal(listing.get("itemCondition"), condition);
+        return (listing, query, builder) -> condition == null ? null : builder.equal(listing.get("itemCondition"), condition);
     }
 
     public static Specification<Listing> hasCategory(String category) {
-        return(listing, query, builder) -> category == null ? null : builder.equal(listing.get("category"), category);
+        return (listing, query, builder) -> category == null ? null : builder.equal(listing.get("category"), category);
     }
 
     public static Specification<Listing> priceBetween(BigDecimal min, BigDecimal max) {
@@ -57,4 +57,8 @@ public class ListingSpecifications {
                 builder.equal(listing.get("user"), user);
     }
 
+    public static Specification<Listing> notOwnedBy(User user) {
+        return (listing, query, builder) ->
+                builder.notEqual(listing.get("user"), user);
+    }
 }
