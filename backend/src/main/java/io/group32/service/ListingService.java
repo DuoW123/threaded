@@ -124,7 +124,7 @@ public class ListingService {
         };
     }
 
-    public Page<Listing> getListings(String search, String size, String condition, String category, BigDecimal minPrice, BigDecimal maxPrice, int page, int pageSize, String sortBy) {
+    public Page<Listing> getListings(String search, String size, String condition, String category, BigDecimal minPrice, BigDecimal maxPrice, int page, int pageSize, String sortBy, HttpServletRequest request) {
         Specification<Listing> specification = Specification.where((listing, query, builder) -> builder.conjunction());
 
         if (search != null && !search.isBlank()) {
@@ -144,6 +144,11 @@ public class ListingService {
         }
 
         specification = specification.and(ListingSpecifications.priceBetween(minPrice, maxPrice));
+
+        User currentUser = sessionService.getUser(request);
+        if (currentUser != null) {
+            specification = specification.and(ListingSpecifications.notOwnedBy(currentUser));
+        }
 
         Sort sortingMethod = getSortingMethod(sortBy);
 

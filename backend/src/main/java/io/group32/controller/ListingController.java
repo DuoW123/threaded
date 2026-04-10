@@ -65,9 +65,10 @@ public class ListingController {
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int pageSize,
-            @RequestParam(defaultValue = "newest") String sortBy
+            @RequestParam(defaultValue = "newest") String sortBy,
+            HttpServletRequest request
     ) {
-        return listingService.getListings(search, size, condition, category, minPrice, maxPrice, page, pageSize, sortBy);
+        return listingService.getListings(search, size, condition, category, minPrice, maxPrice, page, pageSize, sortBy, request);
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -94,7 +95,6 @@ public class ListingController {
             return "Error: " + e.getMessage();
         }
     }
-
 
     @DeleteMapping("/{id}")
     public String deleteListing(
