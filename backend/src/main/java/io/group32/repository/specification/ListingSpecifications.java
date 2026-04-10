@@ -61,4 +61,9 @@ public class ListingSpecifications {
         return (listing, query, builder) ->
                 builder.notEqual(listing.get("user"), user);
     }
+
+    public static Specification<Listing> hasSold(Boolean sold) {
+        return (listing, query, builder) ->
+                sold == null ? null : builder.equal(listing.get("sold"), sold);
+    }
 }

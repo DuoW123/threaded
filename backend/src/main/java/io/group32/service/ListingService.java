@@ -108,7 +108,7 @@ public class ListingService {
     public Listing getListingById(Long id) {
         Optional<Listing> optionalListing = listingRepository.findById(id);
 
-        if (optionalListing.isEmpty()) {
+               if (optionalListing.isEmpty()) {
             throw new RuntimeException("Listing not found with id: " + id.toString());
         }
 
@@ -124,7 +124,12 @@ public class ListingService {
         };
     }
 
-    public Page<Listing> getListings(String search, String size, String condition, String category, BigDecimal minPrice, BigDecimal maxPrice, int page, int pageSize, String sortBy, HttpServletRequest request) {
+    public Page<Listing> getListings(String search, String size, String condition, String category,
+                                     BigDecimal minPrice, BigDecimal maxPrice,
+                                     int page, int pageSize, String sortBy,
+                                     Boolean sold,
+                                     HttpServletRequest request) {
+
         Specification<Listing> specification = Specification.where((listing, query, builder) -> builder.conjunction());
 
         if (search != null && !search.isBlank()) {
@@ -144,6 +149,12 @@ public class ListingService {
         }
 
         specification = specification.and(ListingSpecifications.priceBetween(minPrice, maxPrice));
+
+        if (sold != null) {
+            specification = specification.and((root, query, builder) ->
+                    builder.equal(root.get("sold"), sold)
+            );
+        }
 
         User currentUser = sessionService.getUser(request);
         if (currentUser != null) {
