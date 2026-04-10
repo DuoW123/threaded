@@ -172,21 +172,6 @@
 <body>
 
 <div id="navbar"></div>
-<script>
-    function refreshCartBadge() {
-        const el = document.getElementById("cartCount");
-        if (!el) return;
-        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-        el.textContent = cart.length;
-    }
-
-    fetch("/navbar.html")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("navbar").innerHTML = html;
-            refreshCartBadge();
-        });
-</script>
 
 <div class="container">
     <a href="/home.html" class="back-btn">← Back</a>
@@ -217,14 +202,25 @@ let listingData = null;
 let images = [];
 let currentIndex = 0;
 
+async function loadNavbar() {
+    const res = await fetch("/navbar.html");
+    const html = await res.text();
+    document.getElementById("navbar").innerHTML = html;
+    updateCartBadgeBackend();
+}
+
+async function updateCartBadgeBackend() {
+    const el = document.getElementById("cartCount");
+    if (!el) return;
+    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    if (!res.ok) return;
+    const cart = await res.json();
+    el.textContent = cart.length;
+}
+
 async function loadListing() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-
-    if (!id) {
-        document.body.innerHTML = "<h2>Invalid listing ID.</h2>";
-        return;
-    }
 
     const res = await fetch(`http://localhost:8080/api/listings/${id}`, {
         credentials: "include"
@@ -249,9 +245,6 @@ async function loadListing() {
         images = listing.images.map(i => i.imageUrl);
         document.getElementById("carouselImage").src = images[0];
         updateImageCount();
-    } else {
-        document.getElementById("carouselImage").src = "";
-        document.getElementById("imageCount").textContent = "";
     }
 }
 
@@ -280,31 +273,17 @@ function openFullImage() {
     }
 }
 
-function getCart() {
-    return JSON.parse(localStorage.getItem("cart") || "[]");
-}
-
-function saveCart(cart) {
-    localStorage.setItem("cart", JSON.stringify(cart));
-    if (typeof refreshCartBadge === "function") {
-        refreshCartBadge();
-    }
-}
-
-function addToCart(redirectToCart) {
+async function addToCart(redirect) {
     if (!listingData) return;
-    let cart = getCart();
-    const exists = cart.some(item => item.id === listingData.id);
-    if (!exists) {
-        cart.push({
-            id: listingData.id,
-            title: listingData.title,
-            price: listingData.price,
-            image: images.length > 0 ? images[0] : ""
-        });
-        saveCart(cart);
-    }
-    if (redirectToCart) {
+
+    await fetch(`http://localhost:8080/api/cart/add/${listingData.id}`, {
+        method: "POST",
+        credentials: "include"
+    });
+
+    updateCartBadgeBackend();
+
+    if (redirect) {
         window.location.href = "/cart.html";
     }
 }
@@ -321,9 +300,10 @@ function messageSeller() {
 }
 
 function addToFavourites() {
-    alert("Added to favourites (frontend only for now).");
+    alert("Added to favourites (frontend only).");
 }
 
+loadNavbar();
 loadListing();
 </script>
 

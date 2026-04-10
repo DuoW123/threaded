@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Cart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #fafafa;
+            margin: 0;
+            padding: 0;
+            color: black;
+        }
+
+        .container {
+            padding: 30px;
+            max-width: 900px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 12px;
+            border: 3px solid #ff7ebf;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 2px solid #eee;
+        }
+
+        .cart-item img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid black;
+            margin-right: 20px;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .item-price {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .remove-btn {
+            background: black;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 2px solid black;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .remove-btn:hover {
+            background: #333;
+        }
+
+        .total {
+            text-align: right;
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 20px;
+        }
+
+        .checkout-btn {
+            display: block;
+            margin-left: auto;
+            margin-top: 20px;
+            padding: 14px 22px;
+            background: #ff7ebf;
+            border: 2px solid black;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            color: black;
+        }
+
+        .checkout-btn:hover {
+            background: #ff9ad0;
+        }
+
+        .empty {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #ff7ebf;
+            margin-top: 80px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<div class="container">
+    <h2>Your Cart</h2>
+    <div id="cartItems"></div>
+    <div id="total" class="total"></div>
+    <button id="checkoutBtn" class="checkout-btn" onclick="checkout()">Checkout</button>
+</div>
+
+<script>
+async function loadNavbar() {
+    const res = await fetch("/navbar.html");
+    const html = await res.text();
+    document.getElementById("navbar").innerHTML = html;
+    updateCartBadgeBackend();
+}
+
+async function updateCartBadgeBackend() {
+    const el = document.getElementById("cartCount");
+    if (!el) return;
+    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    if (!res.ok) return;
+    const cart = await res.json();
+    el.textContent = cart.length;
+}
+
+async function loadCart() {
+    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    const items = await res.json();
+
+    const container = document.getElementById("cartItems");
+    const totalEl = document.getElementById("total");
+    const checkoutBtn = document.getElementById("checkoutBtn");
+
+    container.innerHTML = "";
+
+    if (items.length === 0) {
+        container.innerHTML = `<div class="empty">Your cart is empty</div>`;
+        totalEl.textContent = "";
+        checkoutBtn.style.display = "none";
+        return;
+    }
+
+    checkoutBtn.style.display = "block";
+
+    let total = 0;
+
+    for (const item of items) {
+        const listingRes = await fetch(`http://localhost:8080/api/listings/${item.listingId}`, {
+            credentials: "include"
+        });
+        const listing = await listingRes.json();
+
+        total += listing.price;
+
+        const div = document.createElement("div");
+        div.className = "cart-item";
+
+        const img = listing.images.length > 0 ? listing.images[0].imageUrl : "";
+
+        div.innerHTML = `
+            <img src="${img}">
+            <div class="item-info">
+                <div class="item-title">${listing.title}</div>
+                <div class="item-price">£${listing.price}</div>
+            </div>
+            <button class="remove-btn" onclick="removeItem(${listing.id})">Remove</button>
+        `;
+
+        container.appendChild(div);
+    }
+
+    totalEl.textContent = "Total: £" + total;
+}
+
+async function removeItem(listingId) {
+    await fetch(`http://localhost:8080/api/cart/remove/${listingId}`, {
+        method: "DELETE",
+        credentials: "include"
+    });
+
+    updateCartBadgeBackend();
+    loadCart();
+}
+
+async function checkout() {
+    await fetch("http://localhost:8080/api/cart/checkout", {
+        method: "POST",
+        credentials: "include"
+    });
+
+    updateCartBadgeBackend();
+    loadCart();
+}
+
+loadNavbar();
+loadCart();
+</script>
+
+</body>
+</html>
