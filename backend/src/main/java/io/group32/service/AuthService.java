@@ -327,4 +327,14 @@ public class AuthService {
 
          return AuthResult.success("User loaded", me);
     }
+
+    public AuthResult<Void> resendTwoFactor(String username) {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isEmpty()) {
+            return AuthResult.failure("User not found");
+        }
+        startTwoFactorAuthentication(optionalUser.get());
+        return AuthResult.success("Code resent");
+    }
+
 }

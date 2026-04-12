@@ -143,9 +143,7 @@ async function updateCartCount() {
     let twoFactorEnabled = false;
 
     function updateStatus() {
-        statusText.textContent = twoFactorEnabled
-            ? "Enabled"
-            : "Disabled";
+        statusText.textContent = twoFactorEnabled ? "Enabled" : "Disabled";
     }
 
     function showMessage(text, type="error") {
@@ -158,6 +156,7 @@ async function updateCartCount() {
 
         const res = await fetch("/api/auth/toggle-two-factor", {
             method: "POST",
+            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ enabled: newState })
         });
@@ -193,6 +192,8 @@ async function loadProfile() {
     if (data.success) {
         document.getElementById("username").textContent = data.data.username;
         document.getElementById("email").textContent = data.data.email;
+        twoFactorEnabled = data.data.twoFactorEnabled;
+        updateStatus();
     }
 }
 
