@@ -139,4 +139,12 @@ public class AuthController {
             return ResponseEntity.status(401).body(response);
         }
     }
+
+    @PostMapping("/resend-two-factor")
+    public ResponseEntity<ApiResponse<Void>> resendTwoFactor(@RequestBody TwoFactorRequest request) {
+        AuthResult<Void> result = authService.resendTwoFactor(request.getUsername());
+        ApiResponse<Void> response = new ApiResponse<>(result.isSuccess(), result.getMessage(), result.getData());
+        return result.isSuccess() ? ResponseEntity.ok(response) : ResponseEntity.badRequest().body(response);
+    }
+
 }

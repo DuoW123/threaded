@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Two Factor Authentication</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: black;
+        }
+        .box {
+            background: white;
+            padding: 35px;
+            width: 360px;
+            border-radius: 12px;
+            border: 3px solid #ff7ebf;
+            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 2px solid black;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #verify-btn {
+            background: #ff7ebf;
+            color: black;
+            border: 2px solid black;
+        }
+        #verify-btn:hover {
+            background: #ff9ad0;
+        }
+        #resend-btn {
+            background: black;
+            color: white;
+            border: 2px solid black;
+        }
+        #resend-btn:disabled {
+            background: #555;
+        }
+        .message {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Enter 2FA Code</h2>
+
+    <input id="code" type="text" placeholder="6-digit code">
+
+    <button id="verify-btn">Verify</button>
+    <button id="resend-btn">Resend Code</button>
+
+    <div id="timer"></div>
+    <div id="message" class="message"></div>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get("username");
+
+    const msg = document.getElementById("message");
+    const timerEl = document.getElementById("timer");
+    const resendBtn = document.getElementById("resend-btn");
+
+    function show(text, type="error") {
+        msg.textContent = text;
+        msg.className = "message " + type;
+    }
+
+    document.getElementById("verify-btn").onclick = async () => {
+        const code = document.getElementById("code").value;
+
+        const res = await fetch("http://localhost:8080/api/auth/verify-two-factor", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ username, code })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            show(data.message, "error");
+            return;
+        }
+
+        show("Success!", "success");
+
+        setTimeout(() => window.location.href = "home.html", 800);
+    };
+
+    resendBtn.onclick = async () => {
+        const res = await fetch("http://localhost:8080/api/auth/resend-two-factor", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ username })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            show(data.message, "error");
+            return;
+        }
+
+        show("Code sent!", "success");
+        startTimer();
+    };
+
+    function startTimer() {
+        let time = 60;
+        resendBtn.disabled = true;
+
+        const interval = setInterval(() => {
+            timerEl.textContent = "You can resend in " + time + "s";
+            time--;
+
+            if (time < 0) {
+                clearInterval(interval);
+                timerEl.textContent = "";
+                resendBtn.disabled = false;
+            }
+        }, 1000);
+    }
+
+    startTimer();
+</script>
+
+</body>
+</html>

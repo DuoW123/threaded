@@ -15,14 +15,12 @@
             height: 100vh;
             color: black;
         }
-
         .title {
             font-size: 48px;
             font-weight: 800;
             margin-bottom: 25px;
             letter-spacing: 2px;
         }
-
         .login-box {
             background: white;
             padding: 35px;
@@ -32,13 +30,11 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.15);
             text-align: center;
         }
-
         .login-box h2 {
             margin-bottom: 25px;
             font-size: 26px;
             font-weight: 600;
         }
-
         input {
             width: 100%;
             padding: 12px;
@@ -47,7 +43,6 @@
             border: 2px solid black;
             font-size: 16px;
         }
-
         button {
             width: 100%;
             padding: 12px;
@@ -58,32 +53,26 @@
             font-weight: 600;
             cursor: pointer;
         }
-
         #login-btn {
             background: #ff7ebf;
             color: black;
             border: 2px solid black;
         }
-
         #login-btn:hover {
             background: #ff9ad0;
         }
-
         #register-btn {
             background: black;
             color: white;
             border: 2px solid black;
         }
-
         #register-btn:hover {
             background: #333;
         }
-
         .error {
             color: red;
             margin-top: 10px;
         }
-
         .success {
             color: green;
             margin-top: 10px;
@@ -136,11 +125,12 @@
             return;
         }
 
-        show("Login successful!", "success");
-
-        if (data.token) {
-            localStorage.setItem("token", data.token);
+        if (data.data === true) {
+            window.location.href = "twofactor.html?username=" + encodeURIComponent(username);
+            return;
         }
+
+        show("Login successful!", "success");
 
         setTimeout(() => window.location.href = "home.html", 800);
     };
