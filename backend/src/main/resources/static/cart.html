@@ -201,7 +201,7 @@ async function removeItem(listingId) {
 }
 
 async function checkout() {
-    await fetch("http://localhost:8080/api/cart/checkout", {
+    await fetch("http://localhost:8080/api/orders/checkout", {
         method: "POST",
         credentials: "include"
     });

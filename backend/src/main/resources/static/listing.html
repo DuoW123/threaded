@@ -234,6 +234,7 @@ async function updateCartBadgeBackend() {
 async function loadListing() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
+    const fromOrders = params.get("fromOrders") === "true";
 
     const res = await fetch(`http://localhost:8080/api/listings/${id}`, {
         credentials: "include"
@@ -270,6 +271,12 @@ async function loadListing() {
         addBtn.style.opacity = "0.4";
         buyBtn.style.cursor = "not-allowed";
         addBtn.style.cursor = "not-allowed";
+    }
+
+    if (fromOrders) {
+        document.querySelector(".btn-buy").style.display = "none";
+        document.querySelector(".btn-add").style.display = "none";
+        document.querySelector(".btn-fav").style.display = "none";
     }
 }
 
