@@ -137,26 +137,14 @@
             color: black;
         }
 
-        .btn-buy:hover {
-            background: #ff9ad0;
-        }
-
         .btn-add {
             background: white;
             color: black;
         }
 
-        .btn-add:hover {
-            background: #ffe6f3;
-        }
-
         .btn-message {
             background: black;
             color: white;
-        }
-
-        .btn-message:hover {
-            background: #333;
         }
 
         .btn-fav {
@@ -188,6 +176,8 @@
 <div class="container">
     <a href="/home.html" class="back-btn">← Back</a>
 
+    <div id="favStar" style="text-align:right; font-size:26px; font-weight:800; color:#ccc; margin-bottom:10px;">★</div>
+
     <div class="carousel-container">
         <div class="arrow arrow-left" onclick="prevImage()">←</div>
         <img id="carouselImage" class="carousel-image" onclick="openFullImage()">
@@ -214,6 +204,7 @@
 let listingData = null;
 let images = [];
 let currentIndex = 0;
+let isFavourite = false;
 
 async function loadNavbar() {
     const res = await fetch("/navbar.html");
@@ -229,6 +220,25 @@ async function updateCartBadgeBackend() {
     if (!res.ok) return;
     const cart = await res.json();
     el.textContent = cart.length;
+}
+
+async function checkFavourite() {
+    const res = await fetch("http://localhost:8080/api/favourites/me", {
+        credentials: "include"
+    });
+    if (!res.ok) return;
+
+    const data = await res.json();
+    isFavourite = data.data.some(f => f.id === listingData.id);
+
+    updateFavouriteUI();
+}
+
+function updateFavouriteUI() {
+    const favBtn = document.querySelector(".btn-fav");
+    favBtn.textContent = isFavourite ? "★ Remove from Favourites" : "★ Add to Favourites";
+    favBtn.style.background = isFavourite ? "#ffcf33" : "#ffe066";
+    document.getElementById("favStar").style.color = isFavourite ? "#ffe066" : "#ccc";
 }
 
 async function loadListing() {
@@ -278,6 +288,8 @@ async function loadListing() {
         document.querySelector(".btn-add").style.display = "none";
         document.querySelector(".btn-fav").style.display = "none";
     }
+
+    checkFavourite();
 }
 
 function updateImageCount() {
@@ -331,8 +343,24 @@ function messageSeller() {
     window.location.href = `/messages.html?seller=${sellerId}&listing=${listingId}`;
 }
 
-function addToFavourites() {
-    alert("Added to favourites (frontend only).");
+async function addToFavourites() {
+    if (!listingData) return;
+
+    const url = isFavourite
+        ? `http://localhost:8080/api/favourites/remove/${listingData.id}`
+        : `http://localhost:8080/api/favourites/add/${listingData.id}`;
+
+    const method = isFavourite ? "DELETE" : "POST";
+
+    const res = await fetch(url, {
+        method,
+        credentials: "include"
+    });
+
+    if (res.ok) {
+        isFavourite = !isFavourite;
+        updateFavouriteUI();
+    }
 }
 
 loadNavbar();
