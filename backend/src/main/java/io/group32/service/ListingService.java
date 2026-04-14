@@ -53,15 +53,21 @@ public class ListingService {
             return "User error";
         }
 
+        if (images == null || images.isEmpty()) {
+            throw new RuntimeException("A listing must have at least one image");
+        }
+
+        if (images.size() > 4) {
+            throw new RuntimeException("The maximum amount of images allowed is 4");
+        }
+
         Listing listing = getListing(request, user);
         listingRepository.save(listing);
 
-        if (images != null && !images.isEmpty()) {
-            List<ImageRecord> imageRecords = uploadImages(images);
-            addImagesToListing(listing, imageRecords);
-        }
+        List<ImageRecord> imageRecords = uploadImages(images);
+        addImagesToListing(listing, imageRecords);
 
-        return "Temporary String (return actual responses in the future)";
+        return "Listing created successfully";
     }
 
     public Listing getListing(CreateListingRequest request, User user) {
@@ -151,9 +157,7 @@ public class ListingService {
         specification = specification.and(ListingSpecifications.priceBetween(minPrice, maxPrice));
 
         if (sold != null) {
-            specification = specification.and((root, query, builder) ->
-                    builder.equal(root.get("sold"), sold)
-            );
+            specification = specification.and(ListingSpecifications.hasSold(sold));
         }
 
         User currentUser = sessionService.getUser(request);
@@ -182,6 +186,19 @@ public class ListingService {
     @Transactional
     public String handleUpdateListing(Long id, UpdateListingRequest request, List<MultipartFile> newImages, List<String> deleteImages, HttpServletRequest httpRequest) {
         Listing listing = verifyListingOwnership(id, httpRequest);
+
+        int currentCount = listing.getImages().size();
+        int deleteCount = (deleteImages == null) ? 0 : deleteImages.size();
+        int addedCount = (newImages == null || newImages.isEmpty()) ? 0 : newImages.size();
+        int finalCount = currentCount - deleteCount + addedCount;
+
+        if (finalCount < 1) {
+            throw new RuntimeException("A listing must have at least one image");
+        }
+
+        if (finalCount > 4) {
+            throw new RuntimeException("The maximum amount of images allowed is 4");
+        }
 
         updateListingAttributes(listing, request);
 

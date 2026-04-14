@@ -250,7 +250,7 @@ async function loadMyListings() {
         let overlay = "";
         let editButton = "";
 
-        if (item.sold) {
+        if (item.listingStatus === "SOLD") {
             overlay = `<div class="sold-overlay">SOLD</div>`;
         } else {
             editButton = `<button class="btn btn-edit" onclick="editListing(${item.id})">Edit</button>`;

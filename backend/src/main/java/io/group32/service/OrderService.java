@@ -36,9 +36,11 @@ public class OrderService {
             order.setListing(listing);
             order.setPriceAtPurchase(listing.getPrice().doubleValue());
             order.setCreatedAt(LocalDateTime.now());
-            order.setStatus("COMPLETED");
-
+            order.setStatus(OrderStatus.PAID);
             orderRepository.save(order);
+
+            listing.setListingStatus(ListingStatus.SOLD);
+            listingRepository.save(listing);
         }
 
         cartItemRepository.deleteAll(items);
@@ -49,5 +51,37 @@ public class OrderService {
                 .stream()
                 .map(OrderDTO::fromOrder)
                 .toList();
+    }
+
+    @Transactional
+    public void markAsShipped(User user, Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (!order.getListing().getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Only the seller can mark the order as shipped");
+        }
+
+        if (order.getStatus() != OrderStatus.PAID) {
+            throw new RuntimeException("Order status cannot be shipped, if it's currently not paid");
+        }
+
+        order.setStatus(OrderStatus.SHIPPED);
+        orderRepository.save(order);
+    }
+
+    @Transactional
+    public void markAsReceived(User user, Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (!order.getBuyer().getId().equals(user.getId())) {
+            throw new RuntimeException("Only the buyer can confirm the order has arrived");
+        }
+
+        if (order.getStatus() != OrderStatus.SHIPPED) {
+            throw new RuntimeException("Order status must be shipped before it's received");
+        }
+
+        order.setStatus(OrderStatus.RECEIVED);
+        orderRepository.save(order);
     }
 }

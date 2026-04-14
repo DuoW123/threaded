@@ -43,14 +43,12 @@ public class Listing {
     @Column(nullable = false)
     private String category;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ListingStatus listingStatus;
 
     @Column(nullable = false)
     private LocalDateTime creationDate = LocalDateTime.now();
-
-    @Column(nullable = false)
-    private boolean sold = false;
 
     @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
