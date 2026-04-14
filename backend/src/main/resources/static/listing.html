@@ -21,7 +21,6 @@
             background: white;
             border-radius: 12px;
             border: 3px solid #ff7ebf;
-            box-shadow: 0 0 10px rgba(0,0,0,0.15);
         }
 
         .back-btn {
@@ -33,10 +32,6 @@
             text-decoration: none;
             font-weight: 600;
             border: 2px solid black;
-        }
-
-        .back-btn:hover {
-            background: #333;
         }
 
         .carousel-container {
@@ -56,8 +51,6 @@
             border-radius: 12px;
             border: 3px solid black;
             cursor: zoom-in;
-            position: relative;
-            z-index: 2;
         }
 
         .arrow {
@@ -76,20 +69,10 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            user-select: none;
         }
 
-        .arrow:hover {
-            background: #ff9ad0;
-        }
-
-        .arrow-left {
-            left: 25%;
-        }
-
-        .arrow-right {
-            right: 25%;
-        }
+        .arrow-left { left: 25%; }
+        .arrow-right { right: 25%; }
 
         .image-count {
             text-align: center;
@@ -121,6 +104,7 @@
             margin-top: 25px;
             display: flex;
             gap: 15px;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -132,29 +116,12 @@
             font-weight: 600;
         }
 
-        .btn-buy {
-            background: #ff7ebf;
-            color: black;
-        }
-
-        .btn-add {
-            background: white;
-            color: black;
-        }
-
-        .btn-message {
-            background: black;
-            color: white;
-        }
-
-        .btn-fav {
-            background: #ffe066;
-            color: black;
-        }
-
-        .btn-fav:hover {
-            background: #ffcf33;
-        }
+        .btn-buy { background: #ff7ebf; }
+        .btn-add { background: white; }
+        .btn-message { background: black; color: white; }
+        .btn-fav { background: #ffe066; }
+        .btn-ship { background: #ff7ebf; }
+        .btn-receive { background: #ffe066; }
 
         #soldBadge {
             display:none;
@@ -192,7 +159,7 @@
     <div id="meta" class="meta"></div>
     <p id="description"></p>
 
-    <div class="actions">
+    <div class="actions" id="actionButtons">
         <button class="btn btn-buy" onclick="buyNow()">Buy Now</button>
         <button class="btn btn-add" onclick="addToCart(false)">Add to Cart</button>
         <button class="btn btn-message" onclick="messageSeller()">Message Seller</button>
@@ -205,6 +172,8 @@ let listingData = null;
 let images = [];
 let currentIndex = 0;
 let isFavourite = false;
+let orderData = null;
+let currentUserId = null;
 
 async function loadNavbar() {
     const res = await fetch("/navbar.html");
@@ -222,34 +191,33 @@ async function updateCartBadgeBackend() {
     el.textContent = cart.length;
 }
 
-async function checkFavourite() {
-    const res = await fetch("http://localhost:8080/api/favourites/me", {
-        credentials: "include"
-    });
+async function loadUser() {
+    const res = await fetch("http://localhost:8080/api/session/me", { credentials: "include" });
     if (!res.ok) return;
-
     const data = await res.json();
-    isFavourite = data.data.some(f => f.id === listingData.id);
-
-    updateFavouriteUI();
+    currentUserId = data.id;
 }
 
-function updateFavouriteUI() {
-    const favBtn = document.querySelector(".btn-fav");
-    favBtn.textContent = isFavourite ? "★ Remove from Favourites" : "★ Add to Favourites";
-    favBtn.style.background = isFavourite ? "#ffcf33" : "#ffe066";
-    document.getElementById("favStar").style.color = isFavourite ? "#ffe066" : "#ccc";
+async function loadOrder(orderId) {
+    const res = await fetch(`http://localhost:8080/api/orders/${orderId}`, { credentials: "include" });
+    if (!res.ok) return;
+    const data = await res.json();
+    orderData = data.data;
 }
 
 async function loadListing() {
+    await loadUser();
+
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
     const fromOrders = params.get("fromOrders") === "true";
+    const orderId = params.get("orderId");
 
-    const res = await fetch(`http://localhost:8080/api/listings/${id}`, {
-        credentials: "include"
-    });
+    if (fromOrders && orderId) {
+        await loadOrder(orderId);
+    }
 
+    const res = await fetch(`http://localhost:8080/api/listings/${id}`, { credentials: "include" });
     if (!res.ok) {
         document.body.innerHTML = "<h2>Listing not found.</h2>";
         return;
@@ -271,7 +239,7 @@ async function loadListing() {
         updateImageCount();
     }
 
-    if (listing.sold) {
+    if (listing.listingStatus === "SOLD") {
         document.getElementById("soldBadge").style.display = "inline-block";
         const buyBtn = document.querySelector(".btn-buy");
         const addBtn = document.querySelector(".btn-add");
@@ -287,9 +255,48 @@ async function loadListing() {
         document.querySelector(".btn-buy").style.display = "none";
         document.querySelector(".btn-add").style.display = "none";
         document.querySelector(".btn-fav").style.display = "none";
+        addOrderButtons();
     }
 
     checkFavourite();
+}
+
+function addOrderButtons() {
+    if (!orderData) return;
+
+    const container = document.getElementById("actionButtons");
+
+    if (orderData.status === "PAID" && orderData.sellerId === currentUserId) {
+        const btn = document.createElement("button");
+        btn.className = "btn btn-ship";
+        btn.textContent = "Mark as Shipped";
+        btn.onclick = () => markShipped(orderData.id);
+        container.appendChild(btn);
+    }
+
+    if (orderData.status === "SHIPPED" && orderData.buyerId === currentUserId) {
+        const btn = document.createElement("button");
+        btn.className = "btn btn-receive";
+        btn.textContent = "Mark as Received";
+        btn.onclick = () => markReceived(orderData.id);
+        container.appendChild(btn);
+    }
+}
+
+async function markShipped(orderId) {
+    await fetch(`http://localhost:8080/api/orders/${orderId}/ship`, {
+        method: "POST",
+        credentials: "include"
+    });
+    location.reload();
+}
+
+async function markReceived(orderId) {
+    await fetch(`http://localhost:8080/api/orders/${orderId}/receive`, {
+        method: "POST",
+        credentials: "include"
+    });
+    location.reload();
 }
 
 function updateImageCount() {

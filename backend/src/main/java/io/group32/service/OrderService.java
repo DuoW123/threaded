@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 public class OrderService {
@@ -47,10 +48,22 @@ public class OrderService {
     }
 
     public List<OrderDTO> getOrdersForUser(User user) {
-        return orderRepository.findByBuyer(user)
-                .stream()
+        List<Order> buyerOrders = orderRepository.findByBuyer(user);
+        List<Order> sellerOrders = orderRepository.findByListing_User(user);
+
+        return Stream.concat(buyerOrders.stream(), sellerOrders.stream())
+                .distinct()
                 .map(OrderDTO::fromOrder)
                 .toList();
+    }
+
+    public OrderDTO getOrderByIdForUser(User user, Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow();
+        if (!order.getBuyer().getId().equals(user.getId()) &&
+            !order.getListing().getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Not authorized to view this order");
+        }
+        return OrderDTO.fromOrder(order);
     }
 
     @Transactional

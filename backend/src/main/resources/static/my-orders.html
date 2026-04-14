@@ -59,6 +59,24 @@
             margin: 6px 0;
             font-size: 16px;
         }
+        .status {
+            font-weight: 700;
+            margin-top: 6px;
+        }
+        .btn {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 2px solid black;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .ship-btn {
+            background: #ff7ebf;
+        }
+        .receive-btn {
+            background: #ffe066;
+        }
         .empty {
             text-align: center;
             font-size: 20px;
@@ -88,12 +106,12 @@ async function updateCartCount() {
 </script>
 
 <script>
-    fetch("/navbar.html")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("navbar").innerHTML = html;
-            updateCartCount();
-        });
+fetch("/navbar.html")
+    .then(res => res.text())
+    .then(html => {
+        document.getElementById("navbar").innerHTML = html;
+        updateCartCount();
+    });
 </script>
 
 <div class="container">
@@ -102,13 +120,25 @@ async function updateCartCount() {
 </div>
 
 <script>
+let currentUserId = null;
+
+async function loadUser() {
+    const res = await fetch("http://localhost:8080/api/session/me", { credentials: "include" });
+    if (!res.ok) return;
+    const data = await res.json();
+    currentUserId = data.id;
+}
+
 async function loadOrders() {
+    await loadUser();
+
     const res = await fetch("http://localhost:8080/api/orders/me", {
         credentials: "include"
     });
 
     const data = await res.json();
     const container = document.getElementById("orders");
+    container.innerHTML = "";
 
     if (!data.success || data.data.length === 0) {
         container.innerHTML = "<div class='empty'>You haven't bought anything yet.</div>";
@@ -119,13 +149,25 @@ async function loadOrders() {
         const div = document.createElement("div");
         div.className = "order";
 
+        let actionButton = "";
+
+        if (order.status === "PAID" && order.sellerId === currentUserId) {
+            actionButton = `<button class="btn ship-btn" onclick="markShipped(${order.id})">Mark as Shipped</button>`;
+        }
+
+        if (order.status === "SHIPPED" && order.buyerId === currentUserId) {
+            actionButton = `<button class="btn receive-btn" onclick="markReceived(${order.id})">Mark as Received</button>`;
+        }
+
         div.innerHTML = `
             <img src="${order.mainImageUrl}" alt="Listing">
             <div class="details">
-                <h3 onclick="openListing(${order.listingId})">${order.title}</h3>
+                <h3 onclick="openListing(${order.listingId}, ${order.id})">${order.title}</h3>
                 <p><strong>Price:</strong> £${order.priceAtPurchase}</p>
                 <p><strong>Seller:</strong> ${order.sellerUsername}</p>
                 <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
+                <p class="status"><strong>Status:</strong> ${order.status}</p>
+                ${actionButton}
             </div>
         `;
 
@@ -133,8 +175,24 @@ async function loadOrders() {
     });
 }
 
-function openListing(id) {
-    window.location.href = `listing.html?id=${id}&fromOrders=true`;
+function openListing(listingId, orderId) {
+    window.location.href = `listing.html?id=${listingId}&fromOrders=true&orderId=${orderId}`;
+}
+
+async function markShipped(orderId) {
+    await fetch(`http://localhost:8080/api/orders/${orderId}/ship`, {
+        method: "POST",
+        credentials: "include"
+    });
+    loadOrders();
+}
+
+async function markReceived(orderId) {
+    await fetch(`http://localhost:8080/api/orders/${orderId}/receive`, {
+        method: "POST",
+        credentials: "include"
+    });
+    loadOrders();
 }
 
 loadOrders();
