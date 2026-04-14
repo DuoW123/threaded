@@ -1,6 +1,7 @@
 package io.group32.repository.specification;
 
 import io.group32.model.Listing;
+import io.group32.model.ListingStatus;
 import io.group32.model.User;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -63,7 +64,10 @@ public class ListingSpecifications {
     }
 
     public static Specification<Listing> hasSold(Boolean sold) {
-        return (listing, query, builder) ->
-                sold == null ? null : builder.equal(listing.get("sold"), sold);
+        return (listing, query, builder) -> {
+            if (sold == null) return null;
+
+            return sold ? builder.equal(listing.get("listingStatus"), ListingStatus.SOLD) : builder.notEqual(listing.get("listingStatus"), ListingStatus.SOLD);
+        };
     }
 }

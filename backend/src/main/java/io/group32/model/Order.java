@@ -22,5 +22,6 @@ public class Order {
 
     private LocalDateTime createdAt;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 }

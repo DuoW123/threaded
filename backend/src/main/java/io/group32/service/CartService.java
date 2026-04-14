@@ -2,6 +2,7 @@ package io.group32.service;
 
 import io.group32.model.CartItem;
 import io.group32.model.Listing;
+import io.group32.model.ListingStatus;
 import io.group32.repository.CartItemRepository;
 import io.group32.repository.ListingRepository;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class CartService {
             throw new RuntimeException("Cannot buy your own listing");
         }
 
-        if (listing.isSold()) {
+        if (listing.getListingStatus() == ListingStatus.SOLD) {
             throw new RuntimeException("Listing is already sold");
         }
 
@@ -45,15 +46,16 @@ public class CartService {
         cartRepo.deleteByUserIdAndListingId(userId, listingId);
     }
 
-    public void checkout(Long userId) {
-        List<CartItem> items = cartRepo.findByUserId(userId);
-
-        for (CartItem item : items) {
-            Listing listing = listingRepo.findById(item.getListingId()).orElseThrow();
-            listing.setSold(true);
-            listingRepo.save(listing);
-        }
-
-        cartRepo.deleteAll(items);
-    }
+//    @Transactional
+//    public void checkout(Long userId) {
+//        List<CartItem> items = cartRepo.findByUserId(userId);
+//
+//        for (CartItem item : items) {
+//            Listing listing = listingRepo.findById(item.getListingId()).orElseThrow();
+//            listing.setListingStatus(ListingStatus.SOLD);
+//            listingRepo.save(listing);
+//        }
+//
+//        cartRepo.deleteAll(items);
+//    }
 }

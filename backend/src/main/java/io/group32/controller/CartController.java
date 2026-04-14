@@ -39,9 +39,9 @@ public class CartController {
         cartService.removeFromCart(user.getId(), listingId);
     }
 
-    @PostMapping("/checkout")
-    public void checkout(HttpServletRequest request) {
-        User user = sessionService.getUser(request);
-        cartService.checkout(user.getId());
-    }
+//    @PostMapping("/checkout")
+//    public void checkout(HttpServletRequest request) {
+//        User user = sessionService.getUser(request);
+//        cartService.checkout(user.getId());
+//    }
 }
