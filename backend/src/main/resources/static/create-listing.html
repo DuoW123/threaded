@@ -229,6 +229,7 @@ async function updateCartCount() {
         e.preventDefault();
         dropZone.classList.remove("dragover");
         const dropped = Array.from(e.dataTransfer.files);
+        if (selectedFiles.length + dropped.length > 4) return;
         selectedFiles = selectedFiles.concat(dropped);
         updateFileInput();
         renderPreviews();
@@ -236,6 +237,10 @@ async function updateCartCount() {
 
     imageInput.addEventListener("change", function () {
         const newFiles = Array.from(this.files);
+        if (selectedFiles.length + newFiles.length > 4) {
+            imageInput.value = "";
+            return;
+        }
         selectedFiles = selectedFiles.concat(newFiles);
         updateFileInput();
         renderPreviews();
@@ -287,6 +292,11 @@ async function updateCartCount() {
             return;
         }
 
+        if (selectedFiles.length < 1 || selectedFiles.length > 4) {
+            showMessage("You must upload between 1 and 4 images.", "error");
+            return;
+        }
+
         const formData = new FormData();
 
         const jsonData = {
@@ -310,7 +320,7 @@ async function updateCartCount() {
 
         const text = await res.text();
 
-        if (!text.toLowerCase().includes("temporary")) {
+        if (!text.toLowerCase().includes("success")) {
             showMessage("Error creating listing.", "error");
             return;
         }

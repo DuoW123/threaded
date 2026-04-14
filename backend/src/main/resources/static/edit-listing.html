@@ -352,14 +352,23 @@ document.getElementById("save-btn").onclick = async () => {
         category: document.getElementById("category").value
     };
 
-    const formData = new FormData();
-    formData.append("data", JSON.stringify(updated));
-
     const toDelete = [];
     document.querySelectorAll(".delete-checkbox:checked").forEach(cb => {
         toDelete.push(cb.value);
     });
 
+    const existingCount = document.querySelectorAll(".delete-checkbox").length;
+    const deleteCount = toDelete.length;
+    const newCount = newImagesInput.files.length;
+    const finalCount = existingCount - deleteCount + newCount;
+
+    if (finalCount < 1 || finalCount > 4) {
+        showMessage("You must have between 1 and 4 images total.", "error");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(updated));
     formData.append("deleteImages", JSON.stringify(toDelete));
 
     for (let img of newImagesInput.files) {
