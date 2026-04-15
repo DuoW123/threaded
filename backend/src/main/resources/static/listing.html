@@ -390,7 +390,7 @@ async function addToFavourites() {
 
     const url = isFavourite
         ? `/api/favourites/remove/${listingData.id}`
-        : `/favourites/add/${listingData.id}`;
+        : `/api/favourites/add/${listingData.id}`;
 
     const method = isFavourite ? "DELETE" : "POST";
 
