@@ -94,7 +94,7 @@ async function updateCartCount() {
     const el = document.getElementById("cartCount");
     if (!el) return;
 
-    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    const res = await fetch("/api/cart", { credentials: "include" });
     if (!res.ok) {
         el.textContent = 0;
         return;
@@ -123,7 +123,7 @@ fetch("/navbar.html")
 let currentUserId = null;
 
 async function loadUser() {
-    const res = await fetch("http://localhost:8080/api/session/me", { credentials: "include" });
+    const res = await fetch("/api/session/me", { credentials: "include" });
     if (!res.ok) return;
     const data = await res.json();
     currentUserId = data.id;
@@ -132,7 +132,7 @@ async function loadUser() {
 async function loadOrders() {
     await loadUser();
 
-    const res = await fetch("http://localhost:8080/api/orders/me", {
+    const res = await fetch("/api/orders/me", {
         credentials: "include"
     });
 
@@ -180,7 +180,7 @@ function openListing(listingId, orderId) {
 }
 
 async function markShipped(orderId) {
-    await fetch(`http://localhost:8080/api/orders/${orderId}/ship`, {
+    await fetch(`/api/orders/${orderId}/ship`, {
         method: "POST",
         credentials: "include"
     });
@@ -188,7 +188,7 @@ async function markShipped(orderId) {
 }
 
 async function markReceived(orderId) {
-    await fetch(`http://localhost:8080/api/orders/${orderId}/receive`, {
+    await fetch(`/api/orders/${orderId}/receive`, {
         method: "POST",
         credentials: "include"
     });

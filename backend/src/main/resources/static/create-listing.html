@@ -147,7 +147,7 @@ async function updateCartCount() {
     const el = document.getElementById("cartCount");
     if (!el) return;
 
-    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    const res = await fetch("/api/cart", { credentials: "include" });
     if (!res.ok) {
         el.textContent = 0;
         return;
@@ -312,7 +312,7 @@ async function updateCartCount() {
         formData.append("data", JSON.stringify(jsonData));
         selectedFiles.forEach(file => formData.append("images", file));
 
-        const res = await fetch("http://localhost:8080/api/listings", {
+        const res = await fetch("/api/listings", {
             method: "POST",
             body: formData,
             credentials: "include"

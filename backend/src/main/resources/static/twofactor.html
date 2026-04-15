@@ -101,7 +101,7 @@
     document.getElementById("verify-btn").onclick = async () => {
         const code = document.getElementById("code").value;
 
-        const res = await fetch("http://localhost:8080/api/auth/verify-two-factor", {
+        const res = await fetch("/api/auth/verify-two-factor", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -121,7 +121,7 @@
     };
 
     resendBtn.onclick = async () => {
-        const res = await fetch("http://localhost:8080/api/auth/resend-two-factor", {
+        const res = await fetch("/api/auth/resend-two-factor", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",

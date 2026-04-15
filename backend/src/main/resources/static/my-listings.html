@@ -186,7 +186,7 @@ let currentPage = 0;
 const pageSize = 12;
 
 async function loadMyListings() {
-    const url = `http://localhost:8080/api/listings/me?page=${currentPage}&pageSize=${pageSize}`;
+    const url = `/api/listings/me?page=${currentPage}&pageSize=${pageSize}`;
 
     const res = await fetch(url, { credentials: "include" });
 
@@ -319,7 +319,7 @@ function editListing(id) {
 async function deleteListing(id) {
     if (!confirm("Are you sure you want to delete this listing?")) return;
 
-    const res = await fetch(`http://localhost:8080/api/listings/${id}`, {
+    const res = await fetch(`/api/listings/${id}`, {
         method: "DELETE",
         credentials: "include"
     });

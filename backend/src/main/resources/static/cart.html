@@ -131,7 +131,7 @@ async function updateCartCount() {
     const el = document.getElementById("cartCount");
     if (!el) return;
 
-    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    const res = await fetch("/api/cart", { credentials: "include" });
     if (!res.ok) {
         el.textContent = 0;
         return;
@@ -142,7 +142,7 @@ async function updateCartCount() {
 }
 
 async function loadCart() {
-    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    const res = await fetch("/api/cart", { credentials: "include" });
     const items = await res.json();
 
     const container = document.getElementById("cartItems");
@@ -163,7 +163,7 @@ async function loadCart() {
     let total = 0;
 
     for (const item of items) {
-        const listingRes = await fetch(`http://localhost:8080/api/listings/${item.listingId}`, {
+        const listingRes = await fetch(`/api/listings/${item.listingId}`, {
             credentials: "include"
         });
         const listing = await listingRes.json();
@@ -191,7 +191,7 @@ async function loadCart() {
 }
 
 async function removeItem(listingId) {
-    await fetch(`http://localhost:8080/api/cart/remove/${listingId}`, {
+    await fetch(`/api/cart/remove/${listingId}`, {
         method: "DELETE",
         credentials: "include"
     });
@@ -201,7 +201,7 @@ async function removeItem(listingId) {
 }
 
 async function checkout() {
-    await fetch("http://localhost:8080/api/orders/checkout", {
+    await fetch("/api/orders/checkout", {
         method: "POST",
         credentials: "include"
     });
