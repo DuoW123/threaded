@@ -219,7 +219,7 @@ async function loadFavourites() {
         card.onclick = () => window.location.href = `/listing.html?id=${item.id}`;
 
         card.innerHTML = `
-            <div style="text-align:right; font-size:22px; font-weight:800; color:#ffe066;">★</div>
+            <div style="text-align:right; font-size:40px; font-weight:800; color:#ff7ebf;">★</div>
             <img src="${imageUrl}">
             <h4>${item.title}</h4>
             <div class="price">£${item.price}</div>
@@ -281,7 +281,7 @@ async function loadListings() {
         card.onclick = () => window.location.href = `/listing.html?id=${item.id}`;
 
         card.innerHTML = `
-            <div style="text-align:right; font-size:22px; font-weight:800; color:${isFav ? '#ffe066' : '#ccc'};">★</div>
+            <div style="text-align:right; font-size:40px; font-weight:800; color:${isFav ? '#ff7ebf' : '#ccc'};">★</div>
             <img src="${imageUrl}">
             <h4>${item.title}</h4>
             <div class="price">£${item.price}</div>

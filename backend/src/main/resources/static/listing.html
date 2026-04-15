@@ -34,6 +34,15 @@
             border: 2px solid black;
         }
 
+        #favStar {
+            text-align:right;
+            font-size:40px;
+            font-weight:800;
+            margin-bottom:10px;
+            cursor:pointer;
+            color:#ccc;
+        }
+
         .carousel-container {
             position: relative;
             width: 100%;
@@ -143,7 +152,7 @@
 <div class="container">
     <a href="/home.html" class="back-btn">← Back</a>
 
-    <div id="favStar" style="text-align:right; font-size:26px; font-weight:800; color:#ccc; margin-bottom:10px;">★</div>
+    <div id="favStar">★</div>
 
     <div class="carousel-container">
         <div class="arrow arrow-left" onclick="prevImage()">←</div>
@@ -163,7 +172,7 @@
         <button class="btn btn-buy" onclick="buyNow()">Buy Now</button>
         <button class="btn btn-add" onclick="addToCart(false)">Add to Cart</button>
         <button class="btn btn-message" onclick="messageSeller()">Message Seller</button>
-        <button class="btn btn-fav" onclick="addToFavourites()">★ Add to Favourites</button>
+        <button id="favBtn" class="btn btn-fav" onclick="addToFavourites()">★ Add to Favourites</button>
     </div>
 </div>
 
@@ -258,7 +267,7 @@ async function loadListing() {
         addOrderButtons();
     }
 
-    checkFavourite();
+    setTimeout(checkFavourite, 50);
 }
 
 function addOrderButtons() {
@@ -348,6 +357,32 @@ function messageSeller() {
     const sellerId = listingData.user.id;
     const listingId = listingData.id;
     window.location.href = `/messages.html?seller=${sellerId}&listing=${listingId}`;
+}
+
+async function checkFavourite() {
+    const res = await fetch("http://localhost:8080/api/favourites/me", { credentials: "include" });
+    if (!res.ok) return;
+
+    const body = await res.json();
+    if (!body.success || !body.data) return;
+
+    const favs = body.data;
+    isFavourite = favs.some(f => f.id === listingData.id);
+
+    updateFavouriteUI();
+}
+
+function updateFavouriteUI() {
+    const star = document.getElementById("favStar");
+    const btn = document.getElementById("favBtn");
+
+    if (isFavourite) {
+        star.style.color = "#ff7ebf";
+        btn.textContent = "★ Remove from Favourites";
+    } else {
+        star.style.color = "#ccc";
+        btn.textContent = "★ Add to Favourites";
+    }
 }
 
 async function addToFavourites() {
