@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Profile</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
@@ -109,12 +110,21 @@ async function updateCartCount() {
 </script>
 
 <script>
-    fetch("/navbar.html")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("navbar").innerHTML = html;
-            updateCartCount();
-        });
+fetch("/navbar.html")
+    .then(res => res.text())
+    .then(html => {
+        document.getElementById("navbar").innerHTML = html;
+
+        const h = document.getElementById("hamburger");
+        if (h) {
+            h.addEventListener("click", () => {
+                const m = document.getElementById("mobileMenu");
+                m.style.display = m.style.display === "flex" ? "none" : "flex";
+            });
+        }
+
+        updateCartCount && updateCartCount();
+    });
 </script>
 
 <div class="container">
