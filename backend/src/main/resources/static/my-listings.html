@@ -113,12 +113,12 @@
         }
 
         .btn-delete {
-            background: black;
-            color: white;
+            background: #ff7ebf;
+            color: black;
         }
 
         .btn-delete:hover {
-            background: #333;
+            background: #ff9ad0;
         }
 
         .pagination {
@@ -144,6 +144,17 @@
 
         .pagination button:hover {
             background: #ff9ad0;
+        }
+
+        @media (max-width: 600px) {
+            .listings-grid {
+                justify-items: center;
+            }
+
+            .listing-card {
+                width: 90%;
+                max-width: 260px;
+            }
         }
     </style>
 </head>
