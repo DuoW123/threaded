@@ -150,6 +150,8 @@
             margin-top:10px;
         }
     </style>
+    <link rel="stylesheet" href="/responsive.css">
+
 </head>
 <body>
 
@@ -191,15 +193,20 @@ let orderData = null;
 let currentUserId = null;
 
 async function loadNavbar() {
+    const nav = document.getElementById("navbar");
+    nav.style.display = "none";
+
     const res = await fetch("/navbar.html");
     const html = await res.text();
-    document.getElementById("navbar").innerHTML = html;
+
+    nav.innerHTML = html;
+    nav.style.display = "block";
 
     const h = document.getElementById("hamburger");
     if (h) {
         h.addEventListener("click", () => {
             const m = document.getElementById("mobileMenu");
-            m.style.display = m.style.display === "flex" ? "none" : "flex";
+            m.classList.toggle("open");
         });
     }
 

@@ -149,10 +149,12 @@
             color: red;
         }
     </style>
+    <link rel="stylesheet" href="/responsive.css">
+
 </head>
 <body>
 
-<div id="navbar"></div>
+<div id="navbar" style="display:none;"></div>
 
 <script>
 async function updateCartCount() {
@@ -174,13 +176,15 @@ async function updateCartCount() {
 fetch("/navbar.html")
     .then(res => res.text())
     .then(html => {
-        document.getElementById("navbar").innerHTML = html;
+        const nav = document.getElementById("navbar");
+        nav.innerHTML = html;
+        nav.style.display = "block";
 
         const h = document.getElementById("hamburger");
         if (h) {
             h.addEventListener("click", () => {
                 const m = document.getElementById("mobileMenu");
-                m.style.display = m.style.display === "flex" ? "none" : "flex";
+                m.classList.toggle("open");
             });
         }
 
