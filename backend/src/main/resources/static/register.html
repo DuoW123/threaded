@@ -13,67 +13,66 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
             color: black;
         }
 
         .title {
-            font-size: 48px;
+            font-size: 32px;
             font-weight: 800;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             letter-spacing: 2px;
         }
 
         .register-box {
             background: white;
-            padding: 35px;
-            width: 360px;
+            width: 100%;
+            max-width: 360px;
+            padding: 20px;
             border-radius: 12px;
             border: 3px solid #ff7ebf;
-            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            box-sizing: border-box;
             text-align: center;
         }
 
         .register-box h2 {
-            margin-bottom: 25px;
-            font-size: 26px;
+            margin-bottom: 18px;
+            font-size: 20px;
             font-weight: 600;
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
+            padding: 10px;
+            margin: 8px 0;
             border-radius: 8px;
             border: 2px solid black;
-            font-size: 16px;
+            font-size: 14px;
+            box-sizing: border-box;
         }
 
         button {
             width: 100%;
-            padding: 12px;
-            margin-top: 12px;
+            padding: 10px;
+            margin-top: 10px;
             border-radius: 8px;
-            border: none;
-            font-size: 18px;
+            border: 2px solid black;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-        }
-
-        #register-btn {
-            background: #ff7ebf;
             color: black;
-            border: 2px solid black;
-        }
-
-        #register-btn:hover {
-            background: #ff9ad0;
+            background: #ff7ebf;
         }
 
         #login-btn {
             background: black;
             color: white;
-            border: 2px solid black;
+        }
+
+        #register-btn:hover {
+            background: #ff9ad0;
         }
 
         #login-btn:hover {
