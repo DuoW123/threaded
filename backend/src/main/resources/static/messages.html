@@ -108,27 +108,46 @@
         .msg-content {
             font-size: 13px;
         }
+
+        @media (max-width: 600px) {
+            .input-row input {
+                width: 100%;       
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .input-row button {
+                padding-left: 4px;  
+                padding-right: 4px;
+                width: auto;        
+            }
+        }
+
     </style>
     <link rel="stylesheet" href="/responsive.css">
 
 </head>
 <body>
 
-<div id="navbar" style="display:none;"></div>
+<div id="navbar"></div>
 
 <script>
 async function updateCartCount() {
-    const el = document.getElementById("cartCount");
-    if (!el) return;
+    const desktopEl = document.getElementById("cartCountDesktop");
+    const mobileEl = document.getElementById("cartCount");
 
     const res = await fetch("/api/cart", { credentials: "include" });
     if (!res.ok) {
-        el.textContent = 0;
+        if (desktopEl) desktopEl.textContent = 0;
+        if (mobileEl) mobileEl.textContent = 0;
         return;
     }
 
     const cart = await res.json();
-    el.textContent = cart.length;
+    const count = cart.length;
+
+    if (desktopEl) desktopEl.textContent = count;
+    if (mobileEl) mobileEl.textContent = count;
 }
 </script>
 

@@ -62,8 +62,8 @@
         }
 
         .remove-btn {
-            background: black;
-            color: white;
+            background: #ff7ebf;
+            color: black;
             padding: 10px 14px;
             border-radius: 8px;
             border: 2px solid black;
@@ -144,18 +144,22 @@ async function loadNavbar() {
     updateCartBadgeBackend();
 }
 
-async function updateCartCount() {
-    const el = document.getElementById("cartCount");
-    if (!el) return;
+async function updateCartBadgeBackend() {
+    const desktopEl = document.getElementById("cartCountDesktop");
+    const mobileEl = document.getElementById("cartCount");
 
     const res = await fetch("/api/cart", { credentials: "include" });
     if (!res.ok) {
-        el.textContent = 0;
+        if (desktopEl) desktopEl.textContent = 0;
+        if (mobileEl) mobileEl.textContent = 0;
         return;
     }
 
     const cart = await res.json();
-    el.textContent = cart.length;
+    const count = cart.length;
+
+    if (desktopEl) desktopEl.textContent = count;
+    if (mobileEl) mobileEl.textContent = count;
 }
 
 async function loadCart() {
@@ -205,6 +209,7 @@ async function loadCart() {
     }
 
     totalEl.textContent = "Total: £" + total;
+    updateCartBadgeBackend();
 }
 
 async function removeItem(listingId) {
@@ -213,7 +218,7 @@ async function removeItem(listingId) {
         credentials: "include"
     });
 
-    updateCartCount();
+    updateCartBadgeBackend();
     loadCart();
 }
 
@@ -223,7 +228,7 @@ async function checkout() {
         credentials: "include"
     });
 
-    updateCartCount();
+    updateCartBadgeBackend();
     loadCart();
 }
 

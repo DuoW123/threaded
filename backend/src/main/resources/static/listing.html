@@ -214,12 +214,21 @@ async function loadNavbar() {
 }
 
 async function updateCartBadgeBackend() {
-    const el = document.getElementById("cartCount");
-    if (!el) return;
+    const desktopEl = document.getElementById("cartCountDesktop");
+    const mobileEl = document.getElementById("cartCount");
+
     const res = await fetch("/api/cart", { credentials: "include" });
-    if (!res.ok) return;
+    if (!res.ok) {
+        if (desktopEl) desktopEl.textContent = 0;
+        if (mobileEl) mobileEl.textContent = 0;
+        return;
+    }
+
     const cart = await res.json();
-    el.textContent = cart.length;
+    const count = cart.length;
+
+    if (desktopEl) desktopEl.textContent = count;
+    if (mobileEl) mobileEl.textContent = count;
 }
 
 async function loadUser() {
