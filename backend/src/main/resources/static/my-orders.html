@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>My Orders</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -84,6 +85,8 @@
             margin-top: 40px;
         }
     </style>
+    <link rel="stylesheet" href="/responsive.css">
+
 </head>
 <body>
 
@@ -91,17 +94,21 @@
 
 <script>
 async function updateCartCount() {
-    const el = document.getElementById("cartCount");
-    if (!el) return;
+    const desktopEl = document.getElementById("cartCountDesktop");
+    const mobileEl = document.getElementById("cartCount");
 
-    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    const res = await fetch("/api/cart", { credentials: "include" });
     if (!res.ok) {
-        el.textContent = 0;
+        if (desktopEl) desktopEl.textContent = 0;
+        if (mobileEl) mobileEl.textContent = 0;
         return;
     }
 
     const cart = await res.json();
-    el.textContent = cart.length;
+    const count = cart.length;
+
+    if (desktopEl) desktopEl.textContent = count;
+    if (mobileEl) mobileEl.textContent = count;
 }
 </script>
 
@@ -109,8 +116,19 @@ async function updateCartCount() {
 fetch("/navbar.html")
     .then(res => res.text())
     .then(html => {
-        document.getElementById("navbar").innerHTML = html;
-        updateCartCount();
+        const nav = document.getElementById("navbar");
+        nav.innerHTML = html;
+        nav.style.display = "block";
+
+        const h = document.getElementById("hamburger");
+        if (h) {
+            h.addEventListener("click", () => {
+                const m = document.getElementById("mobileMenu");
+                m.classList.toggle("open");
+            });
+        }
+
+        updateCartCount && updateCartCount();
     });
 </script>
 
@@ -123,7 +141,7 @@ fetch("/navbar.html")
 let currentUserId = null;
 
 async function loadUser() {
-    const res = await fetch("http://localhost:8080/api/session/me", { credentials: "include" });
+    const res = await fetch("/api/session/me", { credentials: "include" });
     if (!res.ok) return;
     const data = await res.json();
     currentUserId = data.id;
@@ -132,7 +150,7 @@ async function loadUser() {
 async function loadOrders() {
     await loadUser();
 
-    const res = await fetch("http://localhost:8080/api/orders/me", {
+    const res = await fetch("/api/orders/me", {
         credentials: "include"
     });
 
@@ -180,7 +198,7 @@ function openListing(listingId, orderId) {
 }
 
 async function markShipped(orderId) {
-    await fetch(`http://localhost:8080/api/orders/${orderId}/ship`, {
+    await fetch(`/api/orders/${orderId}/ship`, {
         method: "POST",
         credentials: "include"
     });
@@ -188,7 +206,7 @@ async function markShipped(orderId) {
 }
 
 async function markReceived(orderId) {
-    await fetch(`http://localhost:8080/api/orders/${orderId}/receive`, {
+    await fetch(`/api/orders/${orderId}/receive`, {
         method: "POST",
         credentials: "include"
     });

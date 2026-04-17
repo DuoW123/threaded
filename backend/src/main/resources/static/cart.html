@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Your Cart</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
@@ -61,8 +62,8 @@
         }
 
         .remove-btn {
-            background: black;
-            color: white;
+            background: #ff7ebf;
+            color: black;
             padding: 10px 14px;
             border-radius: 8px;
             border: 2px solid black;
@@ -107,6 +108,8 @@
             margin-top: 80px;
         }
     </style>
+    <link rel="stylesheet" href="/responsive.css">
+
 </head>
 <body>
 
@@ -121,28 +124,46 @@
 
 <script>
 async function loadNavbar() {
+    const nav = document.getElementById("navbar");
+    nav.style.display = "none";
+
     const res = await fetch("/navbar.html");
     const html = await res.text();
-    document.getElementById("navbar").innerHTML = html;
-    updateCartCount();
+
+    nav.innerHTML = html;
+    nav.style.display = "block";
+
+    const h = document.getElementById("hamburger");
+    if (h) {
+        h.addEventListener("click", () => {
+            const m = document.getElementById("mobileMenu");
+            m.classList.toggle("open");
+        });
+    }
+
+    updateCartBadgeBackend();
 }
 
-async function updateCartCount() {
-    const el = document.getElementById("cartCount");
-    if (!el) return;
+async function updateCartBadgeBackend() {
+    const desktopEl = document.getElementById("cartCountDesktop");
+    const mobileEl = document.getElementById("cartCount");
 
-    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    const res = await fetch("/api/cart", { credentials: "include" });
     if (!res.ok) {
-        el.textContent = 0;
+        if (desktopEl) desktopEl.textContent = 0;
+        if (mobileEl) mobileEl.textContent = 0;
         return;
     }
 
     const cart = await res.json();
-    el.textContent = cart.length;
+    const count = cart.length;
+
+    if (desktopEl) desktopEl.textContent = count;
+    if (mobileEl) mobileEl.textContent = count;
 }
 
 async function loadCart() {
-    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    const res = await fetch("/api/cart", { credentials: "include" });
     const items = await res.json();
 
     const container = document.getElementById("cartItems");
@@ -163,7 +184,7 @@ async function loadCart() {
     let total = 0;
 
     for (const item of items) {
-        const listingRes = await fetch(`http://localhost:8080/api/listings/${item.listingId}`, {
+        const listingRes = await fetch(`/api/listings/${item.listingId}`, {
             credentials: "include"
         });
         const listing = await listingRes.json();
@@ -188,25 +209,26 @@ async function loadCart() {
     }
 
     totalEl.textContent = "Total: £" + total;
+    updateCartBadgeBackend();
 }
 
 async function removeItem(listingId) {
-    await fetch(`http://localhost:8080/api/cart/remove/${listingId}`, {
+    await fetch(`/api/cart/remove/${listingId}`, {
         method: "DELETE",
         credentials: "include"
     });
 
-    updateCartCount();
+    updateCartBadgeBackend();
     loadCart();
 }
 
 async function checkout() {
-    await fetch("http://localhost:8080/api/orders/checkout", {
+    await fetch("/api/orders/checkout", {
         method: "POST",
         credentials: "include"
     });
 
-    updateCartCount();
+    updateCartBadgeBackend();
     loadCart();
 }
 

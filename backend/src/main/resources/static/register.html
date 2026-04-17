@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Register</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -12,67 +13,66 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
             color: black;
         }
 
         .title {
-            font-size: 48px;
+            font-size: 32px;
             font-weight: 800;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             letter-spacing: 2px;
         }
 
         .register-box {
             background: white;
-            padding: 35px;
-            width: 360px;
+            width: 100%;
+            max-width: 360px;
+            padding: 20px;
             border-radius: 12px;
             border: 3px solid #ff7ebf;
-            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            box-sizing: border-box;
             text-align: center;
         }
 
         .register-box h2 {
-            margin-bottom: 25px;
-            font-size: 26px;
+            margin-bottom: 18px;
+            font-size: 20px;
             font-weight: 600;
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
+            padding: 10px;
+            margin: 8px 0;
             border-radius: 8px;
             border: 2px solid black;
-            font-size: 16px;
+            font-size: 14px;
+            box-sizing: border-box;
         }
 
         button {
             width: 100%;
-            padding: 12px;
-            margin-top: 12px;
+            padding: 10px;
+            margin-top: 10px;
             border-radius: 8px;
-            border: none;
-            font-size: 18px;
+            border: 2px solid black;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-        }
-
-        #register-btn {
-            background: #ff7ebf;
             color: black;
-            border: 2px solid black;
-        }
-
-        #register-btn:hover {
-            background: #ff9ad0;
+            background: #ff7ebf;
         }
 
         #login-btn {
             background: black;
             color: white;
-            border: 2px solid black;
+        }
+
+        #register-btn:hover {
+            background: #ff9ad0;
         }
 
         #login-btn:hover {
@@ -88,6 +88,28 @@
             color: green;
             margin-top: 10px;
         }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 3px solid #ff7ebf;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #ff7ebf;
+            font-weight: 600;
+        }
+
     </style>
 </head>
 <body>
@@ -126,7 +148,9 @@
         }
 
         try {
-            const res = await fetch("http://localhost:8080/api/auth/register", {
+            msg.innerHTML = `<span class="spinner"></span><span class="loading-text">Loading...</span>`;
+
+            const res = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, username, password })

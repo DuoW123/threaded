@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Listing Details</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
@@ -83,6 +84,11 @@
         .arrow-left { left: 25%; }
         .arrow-right { right: 25%; }
 
+        @media (max-width: 600px) {
+            .arrow-left { left: 5%; }
+            .arrow-right { right: 5%; }
+        }
+
         .image-count {
             text-align: center;
             font-weight: 600;
@@ -125,12 +131,12 @@
             font-weight: 600;
         }
 
-        .btn-buy { background: #ff7ebf; }
-        .btn-add { background: white; }
-        .btn-message { background: black; color: white; }
-        .btn-fav { background: #ffe066; }
-        .btn-ship { background: #ff7ebf; }
-        .btn-receive { background: #ffe066; }
+        .btn-buy { background: #ff7ebf; color: black; }
+        .btn-add { background: white; color: black; }
+        .btn-message { background: #ff7ebf; color: black; }
+        .btn-fav { background: #ffe066; color: black; }
+        .btn-ship { background: #ff7ebf; color: black; }
+        .btn-receive { background: #ffe066; color: black; }
 
         #soldBadge {
             display:none;
@@ -144,6 +150,8 @@
             margin-top:10px;
         }
     </style>
+    <link rel="stylesheet" href="/responsive.css">
+
 </head>
 <body>
 
@@ -185,30 +193,53 @@ let orderData = null;
 let currentUserId = null;
 
 async function loadNavbar() {
+    const nav = document.getElementById("navbar");
+    nav.style.display = "none";
+
     const res = await fetch("/navbar.html");
     const html = await res.text();
-    document.getElementById("navbar").innerHTML = html;
+
+    nav.innerHTML = html;
+    nav.style.display = "block";
+
+    const h = document.getElementById("hamburger");
+    if (h) {
+        h.addEventListener("click", () => {
+            const m = document.getElementById("mobileMenu");
+            m.classList.toggle("open");
+        });
+    }
+
     updateCartBadgeBackend();
 }
 
 async function updateCartBadgeBackend() {
-    const el = document.getElementById("cartCount");
-    if (!el) return;
-    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
-    if (!res.ok) return;
+    const desktopEl = document.getElementById("cartCountDesktop");
+    const mobileEl = document.getElementById("cartCount");
+
+    const res = await fetch("/api/cart", { credentials: "include" });
+    if (!res.ok) {
+        if (desktopEl) desktopEl.textContent = 0;
+        if (mobileEl) mobileEl.textContent = 0;
+        return;
+    }
+
     const cart = await res.json();
-    el.textContent = cart.length;
+    const count = cart.length;
+
+    if (desktopEl) desktopEl.textContent = count;
+    if (mobileEl) mobileEl.textContent = count;
 }
 
 async function loadUser() {
-    const res = await fetch("http://localhost:8080/api/session/me", { credentials: "include" });
+    const res = await fetch("/api/session/me", { credentials: "include" });
     if (!res.ok) return;
     const data = await res.json();
     currentUserId = data.id;
 }
 
 async function loadOrder(orderId) {
-    const res = await fetch(`http://localhost:8080/api/orders/${orderId}`, { credentials: "include" });
+    const res = await fetch(`/api/orders/${orderId}`, { credentials: "include" });
     if (!res.ok) return;
     const data = await res.json();
     orderData = data.data;
@@ -226,7 +257,7 @@ async function loadListing() {
         await loadOrder(orderId);
     }
 
-    const res = await fetch(`http://localhost:8080/api/listings/${id}`, { credentials: "include" });
+    const res = await fetch(`/api/listings/${id}`, { credentials: "include" });
     if (!res.ok) {
         document.body.innerHTML = "<h2>Listing not found.</h2>";
         return;
@@ -293,7 +324,7 @@ function addOrderButtons() {
 }
 
 async function markShipped(orderId) {
-    await fetch(`http://localhost:8080/api/orders/${orderId}/ship`, {
+    await fetch(`/api/orders/${orderId}/ship`, {
         method: "POST",
         credentials: "include"
     });
@@ -301,7 +332,7 @@ async function markShipped(orderId) {
 }
 
 async function markReceived(orderId) {
-    await fetch(`http://localhost:8080/api/orders/${orderId}/receive`, {
+    await fetch(`/api/orders/${orderId}/receive`, {
         method: "POST",
         credentials: "include"
     });
@@ -336,7 +367,7 @@ function openFullImage() {
 async function addToCart(redirect) {
     if (!listingData) return;
 
-    await fetch(`http://localhost:8080/api/cart/add/${listingData.id}`, {
+    await fetch(`/api/cart/add/${listingData.id}`, {
         method: "POST",
         credentials: "include"
     });
@@ -360,7 +391,7 @@ function messageSeller() {
 }
 
 async function checkFavourite() {
-    const res = await fetch("http://localhost:8080/api/favourites/me", { credentials: "include" });
+    const res = await fetch("/api/favourites/me", { credentials: "include" });
     if (!res.ok) return;
 
     const body = await res.json();
@@ -389,8 +420,8 @@ async function addToFavourites() {
     if (!listingData) return;
 
     const url = isFavourite
-        ? `http://localhost:8080/api/favourites/remove/${listingData.id}`
-        : `http://localhost:8080/api/favourites/add/${listingData.id}`;
+        ? `/api/favourites/remove/${listingData.id}`
+        : `/api/favourites/add/${listingData.id}`;
 
     const method = isFavourite ? "DELETE" : "POST";
 

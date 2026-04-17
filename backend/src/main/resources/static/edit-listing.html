@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Edit Listing</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
@@ -15,34 +16,36 @@
         }
 
         .container {
+            width: 100%;
             max-width: 650px;
-            margin: 50px auto;
+            margin: 20px auto;
             background: white;
-            padding: 35px;
+            padding: 20px;
             border-radius: 12px;
             border: 3px solid #ff7ebf;
-            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            box-sizing: border-box;
         }
 
         h2 {
             text-align: center;
-            font-size: 30px;
+            font-size: 24px;
             font-weight: 700;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         input, textarea, select {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
+            padding: 10px;
+            margin: 8px 0;
             border-radius: 8px;
             border: 2px solid black;
-            font-size: 16px;
+            font-size: 14px;
             font-family: 'Poppins', sans-serif;
+            box-sizing: border-box;
         }
 
         textarea {
-            height: 120px;
+            height: 100px;
             resize: none;
         }
 
@@ -52,7 +55,7 @@
             border-radius: 8px;
             cursor: pointer;
             margin-top: 12px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             border: 2px solid black;
         }
@@ -62,28 +65,21 @@
             color: black;
         }
 
-        #save-btn:hover {
-            background: #ff9ad0;
-        }
-
         #cancel-btn {
             background: black;
             color: white;
         }
 
-        #cancel-btn:hover {
-            background: #333;
-        }
-
         #dropZone {
             border: 3px dashed #ff7ebf;
             background: #ffe6f4;
-            padding: 30px;
+            padding: 20px;
             text-align: center;
             border-radius: 12px;
             font-weight: 600;
             margin-top: 10px;
             transition: 0.2s;
+            font-size: 14px;
         }
 
         #dropZone.dragover {
@@ -92,7 +88,7 @@
 
         .image-preview {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             overflow-x: auto;
             padding: 10px 0;
         }
@@ -101,44 +97,37 @@
             position: relative;
             display: inline-block;
             border-radius: 8px;
-            transition: 0.2s;
             padding: 4px;
             background: white;
         }
 
         .image-wrapper.selected {
             outline: 4px solid red;
-            outline-offset: 0;
         }
 
         .image-wrapper img {
-            height: 120px;
-            width: 120px;
+            height: 90px;
+            width: 90px;
             border-radius: 8px;
             object-fit: cover;
             border: 2px solid black;
-            margin: 4px;
         }
 
         .trash-icon {
             position: absolute;
-            top: -10px;
-            right: -10px;
+            top: -8px;
+            right: -8px;
             background: #ff4d4d;
             color: white;
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 12px;
             cursor: pointer;
             border: 2px solid black;
-        }
-
-        .trash-icon:hover {
-            background: #ff1a1a;
         }
 
         .delete-checkbox {
@@ -148,7 +137,7 @@
         .message {
             margin-top: 15px;
             text-align: center;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
         }
 
@@ -160,6 +149,8 @@
             color: red;
         }
     </style>
+    <link rel="stylesheet" href="/responsive.css">
+
 </head>
 <body>
 
@@ -167,27 +158,43 @@
 
 <script>
 async function updateCartCount() {
-    const el = document.getElementById("cartCount");
-    if (!el) return;
+    const desktopEl = document.getElementById("cartCountDesktop");
+    const mobileEl = document.getElementById("cartCount");
 
-    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    const res = await fetch("/api/cart", { credentials: "include" });
     if (!res.ok) {
-        el.textContent = 0;
+        if (desktopEl) desktopEl.textContent = 0;
+        if (mobileEl) mobileEl.textContent = 0;
         return;
     }
 
     const cart = await res.json();
-    el.textContent = cart.length;
+    const count = cart.length;
+
+    if (desktopEl) desktopEl.textContent = count;
+    if (mobileEl) mobileEl.textContent = count;
 }
+
 </script>
 
 <script>
-    fetch("/navbar.html")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("navbar").innerHTML = html;
-            updateCartCount();
-        });
+fetch("/navbar.html")
+    .then(res => res.text())
+    .then(html => {
+        const nav = document.getElementById("navbar");
+        nav.innerHTML = html;
+        nav.style.display = "block";
+
+        const h = document.getElementById("hamburger");
+        if (h) {
+            h.addEventListener("click", () => {
+                const m = document.getElementById("mobileMenu");
+                m.classList.toggle("open");
+            });
+        }
+
+        updateCartCount && updateCartCount();
+    });
 </script>
 
 <div class="container">
@@ -215,10 +222,10 @@ async function updateCartCount() {
         <option value="OTHER">Other</option>
     </select>
 
-    <h3 style="font-weight:600; margin-top:20px;">Existing Images</h3>
+    <h3 style="font-weight:600; margin-top:20px; font-size:16px;">Existing Images</h3>
     <div id="existingImages" class="image-preview"></div>
 
-    <h3 style="font-weight:600; margin-top:20px;">Upload New Images (optional)</h3>
+    <h3 style="font-weight:600; margin-top:20px; font-size:16px;">Upload New Images (optional)</h3>
 
     <div id="dropZone">Drag & Drop Images Here</div>
 

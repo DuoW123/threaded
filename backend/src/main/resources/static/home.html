@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>THREADED — Home</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
@@ -115,6 +116,9 @@
             background: #ff9ad0;
         }
     </style>
+    
+    <link rel="stylesheet" href="/responsive.css">
+
 </head>
 <body>
 
@@ -122,27 +126,42 @@
 
 <script>
 async function updateCartCount() {
-    const el = document.getElementById("cartCount");
-    if (!el) return;
+    const desktopEl = document.getElementById("cartCountDesktop");
+    const mobileEl = document.getElementById("cartCount");
 
-    const res = await fetch("http://localhost:8080/api/cart", { credentials: "include" });
+    const res = await fetch("/api/cart", { credentials: "include" });
     if (!res.ok) {
-        el.textContent = 0;
+        if (desktopEl) desktopEl.textContent = 0;
+        if (mobileEl) mobileEl.textContent = 0;
         return;
     }
 
     const cart = await res.json();
-    el.textContent = cart.length;
+    const count = cart.length;
+
+    if (desktopEl) desktopEl.textContent = count;
+    if (mobileEl) mobileEl.textContent = count;
 }
 </script>
 
 <script>
-    fetch("/navbar.html")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("navbar").innerHTML = html;
-            updateCartCount();
-        });
+fetch("/navbar.html")
+    .then(res => res.text())
+    .then(html => {
+        const nav = document.getElementById("navbar");
+        nav.innerHTML = html;
+        nav.style.display = "block";
+
+        const h = document.getElementById("hamburger");
+        if (h) {
+            h.addEventListener("click", () => {
+                const m = document.getElementById("mobileMenu");
+                m.classList.toggle("open");
+            });
+        }
+
+        updateCartCount && updateCartCount();
+    });
 </script>
 
 <div class="container">
@@ -160,7 +179,7 @@ async function updateCartCount() {
 
 <script>
 async function loadUser() {
-    const res = await fetch("http://localhost:8080/api/auth/me", {
+    const res = await fetch("/api/auth/me", {
         credentials: "include"
     });
 
@@ -179,7 +198,7 @@ loadUser();
 let favouriteIds = [];
 
 async function loadFavouriteIds() {
-    const res = await fetch("http://localhost:8080/api/favourites/me", {
+    const res = await fetch("/api/favourites/me", {
         credentials: "include"
     });
     if (!res.ok) return;
@@ -189,7 +208,7 @@ async function loadFavouriteIds() {
 }
 
 async function loadFavourites() {
-    const res = await fetch("http://localhost:8080/api/favourites/me", {
+    const res = await fetch("/api/favourites/me", {
         credentials: "include"
     });
 
@@ -239,7 +258,7 @@ const pageSize = 12;
 async function loadListings() {
     await loadFavouriteIds();
 
-    const url = `http://localhost:8080/api/listings?page=${currentPage}&pageSize=${pageSize}&sold=false`;
+    const url = `/api/listings?page=${currentPage}&pageSize=${pageSize}&sold=false`;
 
     const res = await fetch(url, { credentials: "include" });
     const data = await res.json();
